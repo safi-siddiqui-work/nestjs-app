@@ -1,0 +1,96 @@
+@baseUrl={{$dotenv baseUrl}}
+
+###
+GET {{baseUrl}}/
+content-type: application/json
+
+###
+GET {{baseUrl}}/todos
+content-type: application/json
+
+###
+POST {{baseUrl}}/todos
+content-type: application/json
+
+{
+    "name": "todo 1"
+}
+
+###
+PUT {{baseUrl}}/todos/9
+content-type: application/json
+
+{
+    "name": "todo 1"
+}
+
+###
+GET {{baseUrl}}/todos?q1=morethant
+content-type: application/json
+
+###
+GET {{baseUrl}}/todos_multiple_queries?q=one&q=two
+content-type: application/json
+
+###
+GET {{baseUrl}}/todos_alias_query?q-q=check
+content-type: application/json
+
+###
+GET {{baseUrl}}/todos_custom_validation?q=utf-8
+content-type: application/json
+
+###
+POST {{baseUrl}}/todos
+content-type: application/json
+
+{
+    "name": "FIrst TODO"
+}
+
+###
+PATCH {{baseUrl}}/todos/1
+content-type: application/json
+
+{
+    "name": "FIrst TODO UPDATED"
+}
+
+###
+GET {{baseUrl}}/todos/secure/resnet
+content-type: application/json
+
+###
+GET {{baseUrl}}/todo_files/fileA
+content-type: application/json
+
+###
+GET {{baseUrl}}/todo_path/pathA/1
+content-type: application/json
+
+###
+GET {{baseUrl}}/todo_pydantic_query_params?p1=55&p2=joy&p3=false
+content-type: application/json
+
+###
+POST {{baseUrl}}/todo_sqlmodel
+content-type: application/json
+
+{
+    "name": "JS"
+}
+
+###
+GET {{baseUrl}}/todo_sqlmodel
+content-type: application/json
+
+###
+POST {{baseUrl}}/todo_body
+content-type: application/json
+
+{
+    "todo":{
+        "name": "Python"
+    },
+    "p2": 55
+}

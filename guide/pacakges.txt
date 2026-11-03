@@ -1,0 +1,3 @@
+Formatting, Linting, Organizing 
+pnpm add prettier-plugin-organize-imports
+
