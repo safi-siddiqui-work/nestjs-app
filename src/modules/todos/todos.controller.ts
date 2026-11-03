@@ -1,4 +1,5 @@
-import { Controller, Get, Param, Post, Put } from '@nestjs/common';
+import { Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { TodoFindAllDto } from '../../common/dto/todo.js';
 import { TodosService } from './todos.service.js';
 
 @Controller('todos')
@@ -6,7 +7,7 @@ export class TodosController {
   constructor(private readonly todosService: TodosService) {}
 
   @Get()
-  getTodos() {
+  getTodos(@Query() query: TodoFindAllDto) {
     return this.todosService?.getTodos();
   }
 

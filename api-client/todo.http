@@ -9,6 +9,10 @@ GET {{baseUrl}}/todos
 content-type: application/json
 
 ###
+GET {{baseUrl}}/todos?name=to
+content-type: application/json
+
+###
 POST {{baseUrl}}/todos
 content-type: application/json
 
