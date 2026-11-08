@@ -1,14 +1,30 @@
 @baseUrl={{$dotenv baseUrl}}
 
-###
+### APP
 GET {{baseUrl}}/
 content-type: application/json
 
-###
+### Get Todos 
 GET {{baseUrl}}/todos
 content-type: application/json
 
-###
+### Create Todos 
+POST {{baseUrl}}/todos
+content-type: application/json
+
+{
+    # "name": "TOOD"
+}
+
+### Update Todos 
+PUT {{baseUrl}}/todos/1asd
+content-type: application/json
+
+{
+    "name": "TOOD"
+}
+
+### 
 GET {{baseUrl}}/todos?name=to
 content-type: application/json
 

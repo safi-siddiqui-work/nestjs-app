@@ -1,3 +1,0 @@
-nest g mo --no-spec modules/todo
-nest g co --no-spec modules/todo
-nest g s --no-spec modules/todo

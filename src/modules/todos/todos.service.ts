@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class TodosService {
   getTodos() {
+    // throw new NotFoundException();
     return [
       {
         name: 'Todo1',
