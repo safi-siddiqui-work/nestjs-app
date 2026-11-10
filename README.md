@@ -62,5 +62,7 @@ nest g mi --no-spec --flat core/middlewares/logger
 nest g f --no-spec --flat common/filters/http-exception
 nest g f --no-spec --flat common/filters/every-exception
 nest g pi --no-spec --flat common/pipes/zod-validation
+nest g gu --no-spec --flat core/guards/auth
+nest g d --no-spec --flat common/decorators/roles
 
 

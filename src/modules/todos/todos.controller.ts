@@ -1,5 +1,16 @@
-import { Body, Controller, Get, Param, Post, Put, Query } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Put,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { Roles } from '../../common/decorators/roles.decorator.js';
 import { TodoFindAllDto } from '../../common/dto/todo.js';
+import { AuthGuard } from '../../core/guards/auth.guard.js';
 import {
   type CreateTodoDto,
   createTodoSchema,
@@ -18,6 +29,8 @@ export class TodosController {
   }
 
   @Post()
+  @Roles(['admin'])
+  @UseGuards(AuthGuard)
   create(@Body({ schema: createTodoSchema }) body: CreateTodoDto) {
     // create(@Body(new ZodValidationPipe(createTodoSchema)) body: CreateTodoDto) {
     return this.todosService?.create();
