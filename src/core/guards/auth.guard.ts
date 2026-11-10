@@ -10,7 +10,9 @@ export class AuthGuard implements CanActivate {
   canActivate(
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
-    const request: Request = context?.switchToHttp()?.getRequest();
+    const request: Request & { user: unknown } = context
+      ?.switchToHttp()
+      ?.getRequest();
 
     const roles = this?.reflector?.get(Roles, context?.getHandler());
 
@@ -19,6 +21,8 @@ export class AuthGuard implements CanActivate {
     }
 
     if (roles?.includes('admin')) {
+      const user = { email: 'random' };
+      request.user = user;
       return true;
     }
 

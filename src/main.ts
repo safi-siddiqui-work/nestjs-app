@@ -5,6 +5,7 @@ import {
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule, ObserveInstrument } from './app.module.js';
 import { EveryExceptionFilter } from './common/filters/every-exception.filter.js';
+import { TransformInterceptor } from './core/interceptors/transform.interceptor.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -25,6 +26,8 @@ async function bootstrap() {
         }),
     }),
   );
+
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   await app.listen(process.env.PORT ?? 3000);
 }

@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../../common/decorators/roles.decorator.js';
+import { User } from '../../common/decorators/user.decorator.js';
 import { TodoFindAllDto } from '../../common/dto/todo.js';
 import { AuthGuard } from '../../core/guards/auth.guard.js';
 import {
@@ -31,7 +32,10 @@ export class TodosController {
   @Post()
   @Roles(['admin'])
   @UseGuards(AuthGuard)
-  create(@Body({ schema: createTodoSchema }) body: CreateTodoDto) {
+  create(
+    @User() user: unknown,
+    @Body({ schema: createTodoSchema }) body: CreateTodoDto,
+  ) {
     // create(@Body(new ZodValidationPipe(createTodoSchema)) body: CreateTodoDto) {
     return this.todosService?.create();
   }
