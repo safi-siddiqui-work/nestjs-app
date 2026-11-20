@@ -37,7 +37,7 @@ export class TodosController {
     @Body({ schema: createTodoSchema }) body: CreateTodoDto,
   ) {
     // create(@Body(new ZodValidationPipe(createTodoSchema)) body: CreateTodoDto) {
-    return this.todosService?.create();
+    return this.todosService?.create(body);
   }
 
   @Put(':id')

@@ -48,6 +48,16 @@ src/
 - Validation
   pnpm add zod
 
+- Configuration
+  pnpm add @nestjs/config
+
+- Drizzle - Neon
+  pnpm add @nestjs/drizzle drizzle-orm@rc @neondatabase/serverless
+  pnpm add -D drizzle-kit@rc
+
+- Authentication
+  pnpm add @nestjs/authentication
+
 ### Commands
 
 - Help
@@ -66,3 +76,4 @@ src/
   nest g gu --no-spec --flat core/guards/auth
   nest g d --no-spec --flat common/decorators/roles
   nest g itc --no-spec --flat core/interceptors/transform
+  nest g cl --no-spec --flat config/app.config

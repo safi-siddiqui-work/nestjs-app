@@ -13,7 +13,7 @@ POST {{baseUrl}}/todos
 content-type: application/json
 
 {
-    "name": "TOOD"
+    "name": "TOOD 3"
 }
 
 ### Update Todos 
