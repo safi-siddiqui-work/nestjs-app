@@ -8,10 +8,10 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Roles } from '../../common/decorators/roles.decorator.js';
-import { User } from '../../common/decorators/user.decorator.js';
-import { TodoFindAllDto } from '../../common/dto/todo.js';
-import { AuthGuard } from '../../core/guards/auth.guard.js';
+import { Roles } from '../../decorators/roles.decorator.js';
+import { User } from '../../decorators/user.decorator.js';
+import { TodoFindAllDto } from '../../dtos/todo.dto.js';
+import { AuthGuard } from '../../guards/auth.guard.js';
 import {
   type CreateTodoDto,
   createTodoSchema,

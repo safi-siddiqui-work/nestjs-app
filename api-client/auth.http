@@ -1,0 +1,25 @@
+@baseUrl={{$dotenv baseUrl}}
+@email={{$dotenv email}}
+@password={{$dotenv password}}
+
+### Signup
+POST {{baseUrl}}/auth/signup
+content-type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Signin
+POST {{baseUrl}}/auth/signin
+content-type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+### Email Verification
+POST {{baseUrl}}/auth/me
+content-type: application/json

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { type DatabaseType, todosTable } from '../../core/database/schema.js';
+import { type DatabaseType, todosTable } from '../../database/schema.js';
 import { CreateTodoDto } from './dto/index.js';
 
 @Injectable()

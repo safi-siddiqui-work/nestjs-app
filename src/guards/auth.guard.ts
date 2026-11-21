@@ -1,7 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { Roles } from '../../common/decorators/roles.decorator.js';
+import { Roles } from '../decorators/roles.decorator.js';
 
 @Injectable()
 export class AuthGuard implements CanActivate {

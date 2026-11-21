@@ -1,6 +1,6 @@
 import { defineRelations } from 'drizzle-orm';
 import { NeonDatabase } from 'drizzle-orm/neon-serverless';
-import { integer, pgTable, varchar } from 'drizzle-orm/pg-core';
+import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const todosTable = pgTable('todos', {
   id: integer().primaryKey().generatedAlwaysAsIdentity(),
@@ -12,6 +12,11 @@ export const usersTable = pgTable('users', {
   name: varchar({ length: 255 }),
   email: varchar({ length: 255 }).notNull().unique(),
   username: varchar({ length: 255 }).notNull().unique(),
+  emailVerifiedAt: timestamp(),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at')
+    .notNull()
+    .$onUpdate(() => new Date()),
 });
 
 export const relations = defineRelations({ todosTable, usersTable }, (r) => ({
@@ -28,4 +33,4 @@ export const relations = defineRelations({ todosTable, usersTable }, (r) => ({
 
 export type DatabaseType = NeonDatabase<typeof relations>;
 
-export type User = typeof usersTable.$inferSelect;
+export type UserType = typeof usersTable.$inferSelect;

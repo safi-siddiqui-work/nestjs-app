@@ -5,9 +5,10 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule, ObserveInstrument } from './app.module.js';
-import { EveryExceptionFilter } from './common/filters/every-exception.filter.js';
 import { AppConfigType } from './config/app.config.js';
-import { TransformInterceptor } from './core/interceptors/transform.interceptor.js';
+import { EveryExceptionFilter } from './filters/every-exception.filter.js';
+import { TransformInterceptor } from './interceptors/transform.interceptor.js';
+import { ErrorType } from './types/api-response.type.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -15,7 +16,7 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService<AppConfigType>);
-  const port = configService.get('port');
+  const port = configService.get('PORT');
 
   const httpAdapter = app?.get(HttpAdapterHost);
   app.useGlobalFilters(new EveryExceptionFilter(httpAdapter));
@@ -25,10 +26,9 @@ async function bootstrap() {
     new StandardSchemaValidationPipe({
       exceptionFactory: (issues) =>
         new BadRequestException({
-          name: 'Bad Request',
-          message: 'Validation has failed',
-          errors: issues,
-        }),
+          message: 'Bad Request',
+          issues: issues as [],
+        } satisfies ErrorType),
     }),
   );
 
