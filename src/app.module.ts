@@ -2,11 +2,7 @@ import { AuthenticationModule } from '@nestjs/authentication';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DrizzleModule, getDrizzleToken } from '@nestjs/drizzle';
-import {
-  FileMailTransport,
-  FileTemplateEngine,
-  MailModule,
-} from '@nestjs/mail';
+import { FileTemplateEngine, MailModule, ResendTransport } from '@nestjs/mail';
 import { createObserveModule } from '@nestjs/observe';
 import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
 import { fromDrizzle, PostgresOutboxStore } from '@nestjs/outbox/postgres';
@@ -71,15 +67,19 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService<AppConfigType>) => ({
-        transport: new FileMailTransport({
-          directory: 'var/email',
+        transport: new ResendTransport({
+          apiKey: configService?.getOrThrow('RESEND_API_KEY'),
         }),
+        // Development
+        // transport: new FileMailTransport({
+        //   directory: 'var/email',
+        // }),
         templates: new FileTemplateEngine({
           dir: join(import.meta.dirname, 'mail/templates'),
           layout: 'layout',
           cache: configService?.getOrThrow('NODE_ENV') === 'production',
         }),
-        from: 'Safi <safisiddiqui@gmail.com>',
+        from: configService?.getOrThrow('RESEND_EMAIL_FROM'),
       }),
     }),
     AuthenticationModule.forRoot({
