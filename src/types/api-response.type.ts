@@ -1,5 +1,5 @@
 import { $ZodIssue } from 'zod/v4/core';
-import { UserType } from '../database/schema.js';
+import { UserType } from '../databases/drizzle.database.js';
 
 export type ApiResponseType = {
   success: boolean;

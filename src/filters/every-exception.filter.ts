@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
+import { MailError } from '@nestjs/mail';
 import { ZodError } from 'zod';
 import { ApiResponseType, ErrorType } from '../types/api-response.type.js';
 
@@ -31,7 +32,7 @@ export class EveryExceptionFilter implements ExceptionFilter {
       const httpEerror = exception?.getResponse() as ErrorType;
       error = {
         message: httpEerror?.message ?? 'Http Exception Failure',
-        status: exception?.getStatus(),
+        status: exception?.getStatus() ?? HttpStatus.BAD_REQUEST,
         issues: httpEerror?.issues,
       };
     }
@@ -41,6 +42,13 @@ export class EveryExceptionFilter implements ExceptionFilter {
         message: 'Zod Excpetion Failure',
         status: HttpStatus.BAD_REQUEST,
         issues: exception?.issues,
+      };
+    }
+
+    if (exception instanceof MailError) {
+      error = {
+        message: exception?.message ?? 'Mail Excpetion Failure',
+        status: HttpStatus.BAD_REQUEST,
       };
     }
 

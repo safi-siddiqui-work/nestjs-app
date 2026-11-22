@@ -6,7 +6,7 @@ import {
   type SignInSchemaType,
   signUpSchema,
   type SignUpSchemaType,
-} from '../../schemas/auth.schema.js';
+} from './auth.schema.js';
 
 @Controller('auth')
 export class AuthController {

@@ -23,18 +23,11 @@
 
 ### Packages
 
-- Formatting, Linting, Organizing
-  pnpm add -D prettier-plugin-organize-imports
-
-- Validation
-  pnpm add zod
-
-- Configuration
-  pnpm add @nestjs/config
-
-- Drizzle - Neon
-  pnpm add @nestjs/drizzle drizzle-orm@rc @neondatabase/serverless
-  pnpm add -D drizzle-kit@rc
-
-- Authentication
-  pnpm add @nestjs/authentication
+- pnpm add -D prettier-plugin-organize-imports
+- pnpm add zod
+- pnpm add @nestjs/config
+- pnpm add @nestjs/drizzle drizzle-orm@rc @neondatabase/serverless
+- pnpm add -D drizzle-kit@rc
+- pnpm add @nestjs/authentication
+- pnpm add @nestjs/mail
+- pnpm add @nestjs/outbox

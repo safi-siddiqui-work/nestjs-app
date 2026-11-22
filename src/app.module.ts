@@ -1,9 +1,17 @@
 import { AuthenticationModule } from '@nestjs/authentication';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { DrizzleModule } from '@nestjs/drizzle';
+import { DrizzleModule, getDrizzleToken } from '@nestjs/drizzle';
+import {
+  FileMailTransport,
+  FileTemplateEngine,
+  MailModule,
+} from '@nestjs/mail';
 import { createObserveModule } from '@nestjs/observe';
+import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
+import { fromDrizzle, PostgresOutboxStore } from '@nestjs/outbox/postgres';
 import { drizzle } from 'drizzle-orm/neon-serverless';
+import { join } from 'node:path';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import {
@@ -11,8 +19,9 @@ import {
   appConfigSchema,
   AppConfigType,
 } from './config/app.config.js';
-import { relations } from './database/schema.js';
+import { DatabaseType, relations } from './databases/drizzle.database.js';
 import { AuthModule } from './modules/auth/auth.module.js';
+import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { TodosModule } from './modules/todos/todos.module.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
@@ -32,12 +41,46 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     // }),
     DrizzleModule.forRootAsync({
       imports: [ConfigModule],
+      inject: [ConfigService],
       useFactory: (configService: ConfigService<AppConfigType>) => ({
         drizzle,
         connection: configService?.getOrThrow('DATABASE_NEON_URL'),
         relations,
       }),
+    }),
+    OutboxModule.forRootAsync({
+      imports: [ConfigModule],
       inject: [ConfigService],
+      useFactory: (configService: ConfigService<AppConfigType>) => ({
+        relay: {
+          enabled: configService?.getOrThrow('OUTBOX_RELAY') !== 'off',
+          // pollInterval: '1s',
+          // lease: '30s',
+          // publishTimeout: '10s',
+        },
+        retry: {
+          attempts: 10,
+          backoff: {
+            delay: '10s',
+            maxDelay: '10m',
+          },
+        },
+      }),
+    }),
+    MailModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<AppConfigType>) => ({
+        transport: new FileMailTransport({
+          directory: 'var/email',
+        }),
+        templates: new FileTemplateEngine({
+          dir: join(import.meta.dirname, 'mail/templates'),
+          layout: 'layout',
+          cache: configService?.getOrThrow('NODE_ENV') === 'production',
+        }),
+        from: 'Safi <safisiddiqui@gmail.com>',
+      }),
     }),
     AuthenticationModule.forRoot({
       session: {
@@ -46,11 +89,27 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         // idleTtl: '3d', // or after 3 days without a request
       },
     }),
+    NotificationsModule,
     AuthModule,
     TodosModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+
+    // Register Outbox
+    {
+      provide: PostgresOutboxStore,
+      inject: [getDrizzleToken(), OutboxStorage],
+      useFactory: (db: DatabaseType, outboxStorage: OutboxStorage) =>
+        new PostgresOutboxStore(
+          {
+            executor: fromDrizzle(db),
+          },
+          outboxStorage,
+        ),
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

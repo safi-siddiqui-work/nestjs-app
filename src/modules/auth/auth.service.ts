@@ -1,8 +1,9 @@
 import { PasswordHasher, SignInService } from '@nestjs/authentication';
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { type DatabaseType } from '../../database/schema.js';
-import { type SignUpSchemaType } from '../../schemas/auth.schema.js';
+import { Outbox } from '@nestjs/outbox';
+import { type DatabaseType } from '../../databases/drizzle.database.js';
+import { type SignUpSchemaType } from './auth.schema.js';
 
 @Injectable()
 export class AuthService {
@@ -11,18 +12,24 @@ export class AuthService {
     private readonly db: DatabaseType,
     private readonly passwordHasher: PasswordHasher,
     private readonly signinService: SignInService,
+    private readonly outbox: Outbox,
   ) {}
 
   async signup(body: SignUpSchemaType) {
-    const hasehd = await this?.passwordHasher?.hash(body?.password);
+    const hashed = await this?.passwordHasher?.hash(body?.password);
 
-    // throw new ZodError([
-    //   {
-    //     code: 'custom',
-    //     path: ['email'],
-    //     message: 'Email is blah',
-    //   },
-    // ]);
+    const result = await this?.db?.transaction(async (tx) => {
+      // insert something
+
+      await this?.outbox?.add(tx, [
+        {
+          topic: 'email-auth.sent',
+          payload: { user: { email: body?.email, name: 'Safi' } },
+        },
+      ]);
+    });
+
+    this?.outbox?.notify();
 
     return {
       user: { email: body?.email },

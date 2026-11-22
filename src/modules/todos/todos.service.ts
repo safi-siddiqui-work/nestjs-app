@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { type DatabaseType, todosTable } from '../../database/schema.js';
-import { CreateTodoDto } from './dto/index.js';
+import {
+  type DatabaseType,
+  todosTable,
+} from '../../databases/drizzle.database.js';
+import { type CreateTodoDto } from '../../dtos/todo.dto.js';
 
 @Injectable()
 export class TodosService {
