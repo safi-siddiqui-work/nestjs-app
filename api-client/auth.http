@@ -1,6 +1,7 @@
 @baseUrl={{$dotenv baseUrl}}
 @email={{$dotenv email}}
 @password={{$dotenv password}}
+@bearerToken={{$dotenv bearerToken}}
 
 ### Signup
 POST {{baseUrl}}/auth/signup
@@ -20,6 +21,8 @@ content-type: application/json
     "password": "{{password}}"
 }
 
-### Email Verification
+### Auth ME
 POST {{baseUrl}}/auth/me
 content-type: application/json
+Authorization: Bearer {{bearerToken}}
+# Bearer-Realm: store

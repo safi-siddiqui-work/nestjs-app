@@ -82,12 +82,20 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         from: configService?.getOrThrow('RESEND_EMAIL_FROM'),
       }),
     }),
-    AuthenticationModule.forRoot({
-      session: {
-        absoluteTtl: 10000, // 10 seconds
-        // absoluteTtl: '14d', // signed out after 14 days, however active
-        // idleTtl: '3d', // or after 3 days without a request
-      },
+    AuthenticationModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService<AppConfigType>) => ({
+        // session: {
+        //   absoluteTtl: 10000, // 10 seconds
+        //   // absoluteTtl: '14d', // signed out after 14 days, however active
+        //   // idleTtl: '3d', // or after 3 days without a request
+        // },
+        accessToken: {
+          key: configService?.getOrThrow('JWT_SECRET'),
+          audience: 'external-apps',
+        },
+      }),
     }),
     NotificationsModule,
     AuthModule,

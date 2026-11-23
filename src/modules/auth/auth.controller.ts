@@ -1,12 +1,12 @@
-import { Public } from '@nestjs/authentication';
+import { CurrentUser, Public } from '@nestjs/authentication';
 import { Body, Controller, Post } from '@nestjs/common';
-import { AuthService } from './auth.service.js';
 import {
   signInSchema,
   type SignInSchemaType,
   signUpSchema,
   type SignUpSchemaType,
 } from './auth.schema.js';
+import { AuthService } from './auth.service.js';
 
 @Controller('auth')
 export class AuthController {
@@ -25,7 +25,10 @@ export class AuthController {
   }
 
   @Post('me')
-  me() {
+  me(@CurrentUser() user: unknown) {
+    return {
+      user,
+    };
     // return this?.authService?.signup();
   }
 }

@@ -14,6 +14,7 @@ export const appConfigSchema = z.object({
   OUTBOX_RELAY: z.string(),
   RESEND_API_KEY: z.string(),
   RESEND_EMAIL_FROM: z.string(),
+  JWT_SECRET: z.string(),
 });
 
 export type AppConfigType = z.infer<typeof appConfigSchema>;
@@ -27,4 +28,5 @@ export const AppConfig: () => AppConfigType = (): AppConfigType => ({
   OUTBOX_RELAY: process?.env?.OUTBOX_RELAY ?? '',
   RESEND_API_KEY: process?.env?.RESEND_API_KEY ?? '',
   RESEND_EMAIL_FROM: process?.env?.RESEND_EMAIL_FROM ?? '',
+  JWT_SECRET: process?.env?.JWT_SECRET ?? '',
 });
