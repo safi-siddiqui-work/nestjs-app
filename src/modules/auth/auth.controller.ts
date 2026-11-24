@@ -1,5 +1,5 @@
-import { CurrentUser, Public } from '@nestjs/authentication';
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard.js';
 import {
   signInSchema,
   type SignInSchemaType,
@@ -12,23 +12,27 @@ import { AuthService } from './auth.service.js';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Public()
   @Post('signup')
   signup(@Body({ schema: signUpSchema }) body: SignUpSchemaType) {
     return this?.authService?.signup(body);
   }
 
-  @Public()
+  // @UseGuards(LocalAuthGuard)
   @Post('signin')
-  signin(@Body({ schema: signInSchema }) body: SignInSchemaType) {
+  signin(
+    @Body({ schema: signInSchema }) body: SignInSchemaType,
+    @Req() req: any,
+  ) {
     return this?.authService?.signin(body);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('me')
-  me(@CurrentUser() user: unknown) {
+  me(@Req() req: any) {
     return {
-      user,
+      user: req.user,
     };
+
     // return this?.authService?.signup();
   }
 }

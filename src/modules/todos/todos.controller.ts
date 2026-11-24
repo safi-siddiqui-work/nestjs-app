@@ -2,21 +2,17 @@ import {
   Body,
   Controller,
   Get,
-  Param,
   Post,
   Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { Roles } from '../../decorators/roles.decorator.js';
 import { User } from '../../decorators/user.decorator.js';
-import {
-  type CreateTodoDto,
-  createTodoSchema,
-  type UpdateTodoParamDto,
-  updateTodoParamSchema,
-} from '../../dtos/todo.dto.js';
+import { type CreateTodoDto, createTodoSchema } from '../../dtos/todo.dto.js';
 import { AuthGuard } from '../../guards/auth.guard.js';
+import { JwtAuthGuard } from '../../guards/jwt-auth.guard.js';
 import { TodosService } from './todos.service.js';
 
 @Controller('todos')
@@ -40,12 +36,17 @@ export class TodosController {
   }
 
   @Put(':id')
+  @UseGuards(JwtAuthGuard)
   // update(@Param() params: { id: number }) {
   // update(@Param('id', ParseIntPipe) id: number) {
   // update(@Param({ schema: z.object({ id: z.number() }) }) id: number) {
-  update(@Param({ schema: updateTodoParamSchema }) param: UpdateTodoParamDto) {
+  update(
+    @Req() req: any,
+    // @Param({ schema: updateTodoParamSchema }) param: UpdateTodoParamDto,
+  ) {
     return this.todosService?.update({
-      id: param?.id,
+      id: 0,
+      // id: param?.id,
     });
   }
 }

@@ -40,6 +40,5 @@ async function bootstrap() {
 
 // await bootstrap();
 bootstrap().catch((error) => {
-  console.error('Application failed to start:', error);
   throw error;
 });

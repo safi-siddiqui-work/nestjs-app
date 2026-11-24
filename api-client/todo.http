@@ -1,4 +1,5 @@
 @baseUrl={{$dotenv baseUrl}}
+@bearerToken={{$dotenv bearerToken}}
 
 ### APP
 GET {{baseUrl}}/
@@ -37,8 +38,9 @@ content-type: application/json
 }
 
 ###
-PUT {{baseUrl}}/todos/9
+PUT {{baseUrl}}/todos/1
 content-type: application/json
+Authorization: Bearer {{bearerToken}}
 
 {
     "name": "todo 1"

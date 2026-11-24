@@ -1,6 +1,7 @@
-import { PasswordHasher, TokenService } from '@nestjs/authentication';
+import { PasswordHasher } from '@nestjs/authentication';
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
+import { JwtService } from '@nestjs/jwt';
 import { Outbox } from '@nestjs/outbox';
 import { type DatabaseType } from '../../databases/drizzle.database.js';
 import { type SignUpSchemaType } from './auth.schema.js';
@@ -11,10 +12,8 @@ export class AuthService {
     @InjectDrizzle()
     private readonly db: DatabaseType,
     private readonly passwordHasher: PasswordHasher,
-    // private readonly signinService: SignInService,
-    private readonly tokenService: TokenService,
-
     private readonly outbox: Outbox,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signup(body: SignUpSchemaType) {
@@ -47,16 +46,15 @@ export class AuthService {
       // upgrade old hashed passwords
     }
 
-    // const result = await this?.signinService?.signIn('1', {
-    //   method: 'password',
-    //   metadata: body,
-    // });
-    const result = await this?.tokenService?.issue('1', {
-      method: 'password',
-      claims: {
-        amr: ['pwd'],
+    const tokens = this?.jwtService?.sign(
+      {
+        sub: 1,
+        email: body?.email,
       },
-    });
+      {
+        expiresIn: '1m',
+      },
+    );
 
     // throw new ZodError([
     //   {
@@ -67,9 +65,8 @@ export class AuthService {
     // ]);
 
     return {
+      tokens,
       user: { email: body?.email },
-      result,
-      // result,
     };
   }
 }

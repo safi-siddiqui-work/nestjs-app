@@ -1,7 +1,7 @@
-import { AuthenticationModule } from '@nestjs/authentication';
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DrizzleModule, getDrizzleToken } from '@nestjs/drizzle';
+import { JwtModule } from '@nestjs/jwt';
 import { FileTemplateEngine, MailModule, ResendTransport } from '@nestjs/mail';
 import { createObserveModule } from '@nestjs/observe';
 import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
@@ -82,21 +82,32 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         from: configService?.getOrThrow('RESEND_EMAIL_FROM'),
       }),
     }),
-    AuthenticationModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService<AppConfigType>) => ({
-        // session: {
-        //   absoluteTtl: 10000, // 10 seconds
-        //   // absoluteTtl: '14d', // signed out after 14 days, however active
-        //   // idleTtl: '3d', // or after 3 days without a request
-        // },
-        accessToken: {
-          key: configService?.getOrThrow('JWT_SECRET'),
-          audience: 'external-apps',
-        },
-      }),
-    }),
+    // AuthenticationModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (configService: ConfigService<AppConfigType>) => ({
+    //     // session: {
+    //     //   absoluteTtl: 10000, // 10 seconds
+    //     //   // absoluteTtl: '14d', // signed out after 14 days, however active
+    //     //   // idleTtl: '3d', // or after 3 days without a request
+    //     // },
+    //     accessToken: {
+    //       key: configService?.getOrThrow('JWT_SECRET'),
+    //       audience: 'external-apps',
+    //     },
+    //   }),
+    // }),
+    // JwtModule.registerAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (configService: ConfigService<AppConfigType>) => ({
+    //     global: true,
+    //     secret: configService?.getOrThrow('JWT_SECRET'),
+    //     signOptions: {
+    //       expiresIn: '10s',
+    //     },
+    //   }),
+    // }),
     NotificationsModule,
     AuthModule,
     TodosModule,
