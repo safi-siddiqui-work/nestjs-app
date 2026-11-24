@@ -15,6 +15,14 @@ export type ErrorType = {
   timestamp?: string;
 };
 
+type JwtPayloadType = {
+  sub?: string;
+  email?: string;
+  sessionId?: string;
+  sessionType?: 'EMAIL_REGISTRATION';
+};
+
 export type ApiResponseBodyType = {
   user?: Partial<UserType>;
+  jwtPayload?: JwtPayloadType;
 };

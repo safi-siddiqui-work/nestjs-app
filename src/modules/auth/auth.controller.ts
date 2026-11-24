@@ -1,3 +1,4 @@
+import { CurrentUser } from '@nestjs/authentication';
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../guards/jwt-auth.guard.js';
 import {
@@ -28,9 +29,10 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Post('me')
-  me(@Req() req: any) {
+  me(@Req() req: any, @CurrentUser() user: any) {
     return {
       user: req.user,
+      user2: user,
     };
 
     // return this?.authService?.signup();

@@ -3,7 +3,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
 import { JwtService } from '@nestjs/jwt';
 import { Outbox } from '@nestjs/outbox';
+import { addMinutes, differenceInSeconds } from 'date-fns';
 import { type DatabaseType } from '../../databases/drizzle.database.js';
+import { ApiResponseBodyType } from '../../types/api-response.type.js';
 import { type SignUpSchemaType } from './auth.schema.js';
 
 @Injectable()
@@ -46,13 +48,18 @@ export class AuthService {
       // upgrade old hashed passwords
     }
 
+    const now = new Date();
+    const nextTime = addMinutes(now, 1);
+    const nextTimeMs = differenceInSeconds(nextTime, now); // seconds
+
     const tokens = this?.jwtService?.sign(
       {
-        sub: 1,
+        sub: '1',
         email: body?.email,
-      },
+      } satisfies ApiResponseBodyType['jwtPayload'],
       {
-        expiresIn: '1m',
+        // expiresIn: '1m',
+        expiresIn: nextTimeMs,
       },
     );
 

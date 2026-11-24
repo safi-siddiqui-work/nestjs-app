@@ -1,7 +1,6 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DrizzleModule, getDrizzleToken } from '@nestjs/drizzle';
-import { JwtModule } from '@nestjs/jwt';
 import { FileTemplateEngine, MailModule, ResendTransport } from '@nestjs/mail';
 import { createObserveModule } from '@nestjs/observe';
 import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
@@ -124,7 +123,9 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         new PostgresOutboxStore(
           {
             executor: fromDrizzle(db),
+            migrate: false,
           },
+          
           outboxStorage,
         ),
     },

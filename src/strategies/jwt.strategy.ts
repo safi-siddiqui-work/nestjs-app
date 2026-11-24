@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { AppConfigType } from '../config/app.config.js';
+import { ApiResponseBodyType } from '../types/api-response.type.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,9 +15,18 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any) {
+  async validate(
+    payload: ApiResponseBodyType['jwtPayload'],
+  ): Promise<ApiResponseBodyType['jwtPayload'] | null> {
+    if (!payload || !payload?.sub || !payload?.email) {
+      return null;
+    }
+
+    // array first itme becomes user, and second becomes authinfo
+    // return [];
+
     return {
-      userId: payload?.sub,
+      sub: payload?.sub,
       email: payload?.email,
     };
   }
