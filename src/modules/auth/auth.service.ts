@@ -1,11 +1,9 @@
 import { PasswordHasher } from '@nestjs/authentication';
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { JwtService } from '@nestjs/jwt';
 import { Outbox } from '@nestjs/outbox';
 import { addMinutes, differenceInSeconds } from 'date-fns';
 import { type DatabaseType } from '../../databases/drizzle.database.js';
-import { ApiResponseBodyType } from '../../types/api-response.type.js';
 import { type SignUpSchemaType } from './auth.schema.js';
 
 @Injectable()
@@ -15,7 +13,7 @@ export class AuthService {
     private readonly db: DatabaseType,
     private readonly passwordHasher: PasswordHasher,
     private readonly outbox: Outbox,
-    private readonly jwtService: JwtService,
+    // private readonly jwtService: JwtService,
   ) {}
 
   async signup(body: SignUpSchemaType) {
@@ -52,16 +50,16 @@ export class AuthService {
     const nextTime = addMinutes(now, 1);
     const nextTimeMs = differenceInSeconds(nextTime, now); // seconds
 
-    const tokens = this?.jwtService?.sign(
-      {
-        sub: '1',
-        email: body?.email,
-      } satisfies ApiResponseBodyType['jwtPayload'],
-      {
-        // expiresIn: '1m',
-        expiresIn: nextTimeMs,
-      },
-    );
+    // const tokens = this?.jwtService?.sign(
+    //   {
+    //     sub: '1',
+    //     email: body?.email,
+    //   } satisfies ApiResponseBodyType['jwtPayload'],
+    //   {
+    //     // expiresIn: '1m',
+    //     expiresIn: nextTimeMs,
+    //   },
+    // );
 
     // throw new ZodError([
     //   {
@@ -72,7 +70,7 @@ export class AuthService {
     // ]);
 
     return {
-      tokens,
+      // tokens,
       user: { email: body?.email },
     };
   }

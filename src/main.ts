@@ -34,6 +34,8 @@ async function bootstrap() {
 
   app.useGlobalInterceptors(new TransformInterceptor());
 
+  // app.useGlobalGuards(new ThrottlerGuard());
+
   await app.listen(port);
   // await app.listen(process.env.PORT ?? 3000);
 }

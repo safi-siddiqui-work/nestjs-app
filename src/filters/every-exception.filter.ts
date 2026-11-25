@@ -14,15 +14,14 @@ import { ApiResponseType, ErrorType } from '../types/api-response.type.js';
 export class EveryExceptionFilter implements ExceptionFilter {
   constructor(private readonly httpAdapterHost: HttpAdapterHost) {}
 
-  catch(exception: unknown, host: ArgumentsHost) {
+  catch(exception: Error, host: ArgumentsHost) {
     // In certain situations `httpAdapter` might not be available in the
     // constructor, so resolve it here.
     const { httpAdapter } = this.httpAdapterHost;
     const ctx = host?.switchToHttp();
 
-    // let httpStatus = HttpStatus?.INTERNAL_SERVER_ERROR;
     let error: ErrorType = {
-      message: 'Internal server error has occured',
+      message: exception?.message ?? 'Internal server error has occured',
       status: HttpStatus?.INTERNAL_SERVER_ERROR,
       path: httpAdapter?.getRequestUrl(ctx?.getRequest()),
       timestamp: new Date().toISOString(),

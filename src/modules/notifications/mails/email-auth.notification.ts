@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Mailable } from '@nestjs/mail';
-import { ApiResponseBodyType } from '../../../types/api-response.type.js';
+import { ApiResponseBodyType } from '../../../types/api-response-body.type.js';
 
 @Injectable()
 export class EmailAuthMail implements Mailable<ApiResponseBodyType> {

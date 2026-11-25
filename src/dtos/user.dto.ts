@@ -1,4 +1,4 @@
-import { ApiResponseBodyType } from '../types/api-response.type.js';
+import { ApiResponseBodyType } from '../types/api-response-body.type.js';
 
 export class UserDto {
   constructor(private readonly user: ApiResponseBodyType['user']) {}

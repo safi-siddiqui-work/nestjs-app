@@ -1,5 +1,5 @@
 import { $ZodIssue } from 'zod/v4/core';
-import { UserType } from '../databases/drizzle.database.js';
+import { type ApiResponseBodyType } from './api-response-body.type.js';
 
 export type ApiResponseType = {
   success: boolean;
@@ -13,16 +13,4 @@ export type ErrorType = {
   status?: number;
   path?: string;
   timestamp?: string;
-};
-
-type JwtPayloadType = {
-  sub?: string;
-  email?: string;
-  sessionId?: string;
-  sessionType?: 'EMAIL_REGISTRATION';
-};
-
-export type ApiResponseBodyType = {
-  user?: Partial<UserType>;
-  jwtPayload?: JwtPayloadType;
 };

@@ -13,24 +13,47 @@ export const usersTable = pgTable('users', {
   email: varchar({ length: 255 }).notNull().unique(),
   username: varchar({ length: 255 }).notNull().unique(),
   emailVerifiedAt: timestamp(),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at')
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp()
+    .notNull()
+    .$onUpdate(() => new Date()),
+  deletedAt: timestamp(),
+});
+
+export const sessionsTable = pgTable('sessions', {
+  id: integer().primaryKey().generatedAlwaysAsIdentity(),
+  userId: integer().references(() => usersTable.id),
+  email: varchar({ length: 255 }).notNull(),
+  token: varchar({ length: 255 }).notNull(),
+  scope: varchar({ length: 255 }).notNull(),
+  expiresAt: timestamp().notNull(),
+  sentAt: timestamp(),
+  usedAt: timestamp(),
+  createdAt: timestamp().notNull().defaultNow(),
+  updatedAt: timestamp()
     .notNull()
     .$onUpdate(() => new Date()),
 });
 
-export const relations = defineRelations({ todosTable, usersTable }, (r) => ({
-  todosTable: {
-    // users: r.many.usersTable()
-  },
-  // posts: {
-  // 	author: r.one.users({
-  // 		from: r.posts.ownerId,
-  // 		to: r.users.id,
-  // 	}),
-  // }
-}));
+export const relations = defineRelations(
+  { todosTable, usersTable, sessionsTable },
+  (r) => ({
+    usersTable: {
+      sessions: r.many.sessionsTable({
+        from: r.usersTable.id,
+        to: r.sessionsTable.userId,
+      }),
+    },
+    sessionsTable: {
+      user: r.one.usersTable({
+        from: r.sessionsTable.userId,
+        to: r.usersTable.id,
+      }),
+    },
+  }),
+);
 
 export type DatabaseType = NeonDatabase<typeof relations>;
 
 export type UserType = typeof usersTable.$inferSelect;
+export type SessionType = typeof sessionsTable.$inferSelect;

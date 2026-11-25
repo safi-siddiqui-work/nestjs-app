@@ -1,10 +1,12 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
 import { DrizzleModule, getDrizzleToken } from '@nestjs/drizzle';
 import { FileTemplateEngine, MailModule, ResendTransport } from '@nestjs/mail';
 import { createObserveModule } from '@nestjs/observe';
 import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
 import { fromDrizzle, PostgresOutboxStore } from '@nestjs/outbox/postgres';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import { join } from 'node:path';
 import { AppController } from './app.controller.js';
@@ -17,7 +19,7 @@ import {
 import { DatabaseType, relations } from './databases/drizzle.database.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
-import { TodosModule } from './modules/todos/todos.module.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -34,6 +36,14 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     //   appSecret: process.env.OBSERVE_APP_SECRET ?? 'YOUR_APP_SECRET',
     //   serviceId: 'nestjs-app',
     // }),
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 10,
+        },
+      ],
+    }),
     DrizzleModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -96,24 +106,18 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     //     },
     //   }),
     // }),
-    // JwtModule.registerAsync({
-    //   imports: [ConfigModule],
-    //   inject: [ConfigService],
-    //   useFactory: (configService: ConfigService<AppConfigType>) => ({
-    //     global: true,
-    //     secret: configService?.getOrThrow('JWT_SECRET'),
-    //     signOptions: {
-    //       expiresIn: '10s',
-    //     },
-    //   }),
-    // }),
     NotificationsModule,
     AuthModule,
-    TodosModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
+
+    // Throttler
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
 
     // Register Outbox
     {
@@ -123,12 +127,14 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         new PostgresOutboxStore(
           {
             executor: fromDrizzle(db),
-            migrate: false,
+            // migrate: false,
           },
-          
           outboxStorage,
         ),
     },
+
+    // Strategy
+    JwtStrategy,
   ],
 })
 export class AppModule implements NestModule {
