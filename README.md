@@ -37,3 +37,7 @@
   pnpm add @nestjs/jwt passport-jwt
   pnpm add -D @types/passport-jwt
   pnpm add @nestjs/throttler
+  pnpm add @nestjs/drizzle drizzle-orm@rc pg
+  pnpm add -D drizzle-kit@rc @types/pg
+
+ 

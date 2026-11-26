@@ -7,7 +7,7 @@ export const requestOtpSchema = z?.object({
 export type RequestOtpDto = z.infer<typeof requestOtpSchema>;
 
 export const verifyOtpSchema = z?.object({
-  code: z.string().min(6).max(6),
+  code: z.string().min(8).max(8),
 });
 
 export type VerifyOtpDto = z.infer<typeof verifyOtpSchema>;

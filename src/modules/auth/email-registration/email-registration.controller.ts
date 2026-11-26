@@ -49,13 +49,18 @@ export class EmailRegistrationController {
     });
   }
 
+  @Auth('EMAIL_REGISTRATION_CREATE')
   @Post('create-user')
   createUser(
     @Body({
       schema: createUserSchema,
     })
     body: CreateUserDto,
+    @JwtUser() jwtPayload: ApiResponseBodyType['jwtPayload'],
   ) {
-    return this?.emailRegistrationService?.createUser(body);
+    return this?.emailRegistrationService?.createUser({
+      user: body,
+      jwtPayload,
+    });
   }
 }

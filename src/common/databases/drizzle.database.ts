@@ -12,6 +12,7 @@ export const usersTable = pgTable('users', {
   name: varchar({ length: 255 }),
   email: varchar({ length: 255 }).notNull().unique(),
   username: varchar({ length: 255 }).notNull().unique(),
+  password: varchar({ length: 255 }),
   emailVerifiedAt: timestamp(),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp()
@@ -26,6 +27,7 @@ export const sessionsTable = pgTable('sessions', {
   email: varchar({ length: 255 }).notNull(),
   token: varchar({ length: 255 }).notNull(),
   scope: varchar({ length: 255 }).notNull(),
+  attampts: integer().default(0),
   expiresAt: timestamp().notNull(),
   sentAt: timestamp(),
   usedAt: timestamp(),

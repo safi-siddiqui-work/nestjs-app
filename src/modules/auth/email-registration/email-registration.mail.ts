@@ -9,7 +9,7 @@ export class EmailRegistrationRequestOtpMail implements Mailable<ApiResponseBody
     const { token } = payload?.session ?? {};
 
     return {
-      subject: `Otp code: ${token}`,
+      subject: 'Email Registration',
       template: `${MailConstants?.emailRegistration?.folder}/${MailConstants?.emailRegistration?.requestOtp}`,
       context: payload,
     };

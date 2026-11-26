@@ -14,6 +14,7 @@ type JwtPayloadType = {
   // scope?: string;
   scope?: SessionScopeType;
   expiresAt?: Date;
+  token?: string;
 };
 
 export type SessionScopeType =

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { addMinutes, differenceInSeconds } from 'date-fns';
+import { differenceInSeconds } from 'date-fns';
 import { ApiResponseBodyType } from '../../common/types/api-response-body.type.js';
 
 @Injectable()
@@ -15,6 +15,7 @@ export class JwtCustomService {
         email: body?.jwtPayload?.email,
         scope: body?.jwtPayload?.scope,
         expiresAt: body?.jwtPayload?.expiresAt,
+        token: body?.jwtPayload?.token,
       } satisfies ApiResponseBodyType['jwtPayload'],
       {
         expiresIn: differenceInSeconds(
@@ -23,10 +24,5 @@ export class JwtCustomService {
         ),
       },
     );
-    // return this.passwordHasher?.hash(value);
-  }
-
-  addMinutes(minutes: number = 0, date: Date = new Date()): Date {
-    return addMinutes(date, minutes);
   }
 }
