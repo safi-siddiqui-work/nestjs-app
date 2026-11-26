@@ -1,7 +1,7 @@
 import { Body, Controller, Post } from '@nestjs/common';
-import { Auth } from '../../../decorators/auth.decorator.js';
-import { JwtUser } from '../../../decorators/user.decorator.js';
-import { ApiResponseBodyType } from '../../../types/api-response-body.type.js';
+import { Auth } from '../../../common/decorators/auth.decorator.js';
+import { JwtUser } from '../../../common/decorators/user.decorator.js';
+import { ApiResponseBodyType } from '../../../common/types/api-response-body.type.js';
 import {
   type CreateUserDto,
   createUserSchema,

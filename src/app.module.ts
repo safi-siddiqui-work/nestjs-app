@@ -15,11 +15,13 @@ import {
   AppConfig,
   appConfigSchema,
   AppConfigType,
-} from './config/app.config.js';
-import { DatabaseType, relations } from './databases/drizzle.database.js';
+} from './common/config/app.config.js';
+import {
+  DatabaseType,
+  relations,
+} from './common/databases/drizzle.database.js';
+import { JwtStrategy } from './common/strategies/jwt.strategy.js';
 import { AuthModule } from './modules/auth/auth.module.js';
-import { NotificationsModule } from './modules/notifications/notifications.module.js';
-import { JwtStrategy } from './strategies/jwt.strategy.js';
 
 export const { ObserveModule, ObserveInstrument } = createObserveModule();
 
@@ -106,7 +108,6 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     //     },
     //   }),
     // }),
-    NotificationsModule,
     AuthModule,
   ],
   controllers: [AppController],

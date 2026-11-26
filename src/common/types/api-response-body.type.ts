@@ -1,4 +1,4 @@
-import { SessionType, type UserType } from '../databases/drizzle.database.js';
+import { SessionType, UserType } from '../databases/drizzle.database.js';
 
 export type ApiResponseBodyType = {
   user?: Partial<UserType>;

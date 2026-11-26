@@ -1,17 +1,19 @@
+import { PasswordHasher } from '@nestjs/authentication';
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
 import { Outbox } from '@nestjs/outbox';
 import { differenceInMinutes } from 'date-fns';
 import { ZodError } from 'zod';
-import { OutboxConstants } from '../../../constants/outbox.constants.js';
+import { OutboxConstants } from '../../../common/constants/outbox.constants.js';
 import {
   sessionsTable,
   type DatabaseType,
-} from '../../../databases/drizzle.database.js';
+} from '../../../common/databases/drizzle.database.js';
 import {
   ApiResponseBodyType,
   SessionScopeType,
-} from '../../../types/api-response-body.type.js';
+} from '../../../common/types/api-response-body.type.js';
+import { JwtCustomService } from '../../jwt-custom/jwt-custom.service.js';
 import { UtilService } from '../../util/util.service.js';
 import { type CreateUserDto } from './email-registration.dto.js';
 
@@ -21,6 +23,8 @@ export class EmailRegistrationService {
     @InjectDrizzle()
     private readonly db: DatabaseType,
     private readonly utilService: UtilService,
+    private readonly jwtCustomService: JwtCustomService,
+    private readonly passwordHasher: PasswordHasher,
     private readonly outbox: Outbox,
   ) {}
 
@@ -65,6 +69,9 @@ export class EmailRegistrationService {
         usedAt: {
           isNull: true,
         },
+        sentAt: {
+          isNull: true,
+        },
       },
       columns: {
         expiresAt: true,
@@ -72,17 +79,17 @@ export class EmailRegistrationService {
     });
     if (sessionExist) {
       const diff = differenceInMinutes(sessionExist?.expiresAt, new Date());
-      // throw new ZodError([
-      //   {
-      //     code: 'custom',
-      //     path: ['email'],
-      //     message: `Wait for ${diff} minutes before requesting`,
-      //   },
-      // ]);
+      throw new ZodError([
+        {
+          code: 'custom',
+          path: ['email'],
+          message: `Wait for ${diff} minutes before requesting`,
+        },
+      ]);
     }
 
     const code = this.utilService?.generateOtp(8);
-    const token = await this.utilService?.hashString(code);
+    const token = await this.passwordHasher?.hash(code);
     const expiresAt = this.utilService?.addMinutes(5);
     let sessionCreate: ApiResponseBodyType['session'][] = [];
 
@@ -108,6 +115,7 @@ export class EmailRegistrationService {
             session: {
               id: sessionCreate?.at(0)?.id,
               email,
+              scope,
               token: code,
             },
           } satisfies ApiResponseBodyType,
@@ -117,7 +125,7 @@ export class EmailRegistrationService {
 
     this?.outbox?.notify();
 
-    const accessToken = this?.utilService?.jwtSignin({
+    const accessToken = this?.jwtCustomService?.signin({
       jwtPayload: {
         email,
         expiresAt,
@@ -130,9 +138,6 @@ export class EmailRegistrationService {
       session: {
         token: accessToken,
       },
-      jwtPayload: {
-        email: code,
-      },
     };
   }
 
@@ -144,6 +149,11 @@ export class EmailRegistrationService {
   }
 
   async createUser(body: CreateUserDto) {
+    // const check = await this?.passwordHasher?.verify(body?.password, hashed);
+
+    // if (this?.passwordHasher?.needsRehash(hashed)) {
+    //   // upgrade old hashed passwords
+    // }
     return body;
   }
 }
