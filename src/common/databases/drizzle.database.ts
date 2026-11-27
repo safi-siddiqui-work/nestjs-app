@@ -30,6 +30,7 @@ export const sessionsTable = pgTable('sessions', {
   attampts: integer().default(0),
   expiresAt: timestamp().notNull(),
   sentAt: timestamp(),
+  mailId: varchar({ length: 255 }),
   usedAt: timestamp(),
   createdAt: timestamp().notNull().defaultNow(),
   updatedAt: timestamp()

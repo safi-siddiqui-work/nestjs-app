@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { differenceInSeconds } from 'date-fns';
 import { ApiResponseBodyType } from '../../common/types/api-response-body.type.js';
@@ -8,14 +8,27 @@ export class JwtCustomService {
   constructor(private readonly jwtService: JwtService) {}
 
   signin(body: ApiResponseBodyType): string {
+    const { expiresAt, scope, userId, sessionId, email, token } =
+      body?.jwtPayload ?? {};
+
+    if (!expiresAt || !scope) {
+      throw new BadRequestException('expiresAt, scope is required');
+    }
+
+    if (!userId && !sessionId && !email) {
+      throw new BadRequestException(
+        'userId, sessionId, email, atleast is required',
+      );
+    }
+
     return this?.jwtService?.sign(
       {
-        userId: body?.jwtPayload?.userId,
-        sessionId: body?.jwtPayload?.sessionId,
-        email: body?.jwtPayload?.email,
-        scope: body?.jwtPayload?.scope,
-        expiresAt: body?.jwtPayload?.expiresAt,
-        token: body?.jwtPayload?.token,
+        scope,
+        expiresAt,
+        userId,
+        sessionId,
+        email,
+        token,
       } satisfies ApiResponseBodyType['jwtPayload'],
       {
         expiresIn: differenceInSeconds(

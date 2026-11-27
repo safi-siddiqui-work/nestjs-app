@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { Mailer, MailError } from '@nestjs/mail';
 import {
   NonRetryableMessageError,
   OnOutboxMessage,
@@ -13,6 +12,7 @@ import {
   type DatabaseType,
 } from '../../../common/databases/drizzle.database.js';
 import { type ApiResponseBodyType } from '../../../common/types/api-response-body.type.js';
+import { MailerCustomService } from '../../mailer-custom/mailer-custom.service.js';
 import { EmailRegistrationRequestOtpMail } from './email-registration.mail.js';
 
 @Injectable()
@@ -20,7 +20,7 @@ export class EmailRegistrationHandler {
   constructor(
     @InjectDrizzle()
     private readonly db: DatabaseType,
-    private readonly mailer: Mailer,
+    private readonly mailerCustomService: MailerCustomService,
   ) {}
 
   @OnOutboxMessage(OutboxConstants?.emailRegistrationVerify, {
@@ -28,7 +28,7 @@ export class EmailRegistrationHandler {
   })
   async emailRegistrationVerify(
     payload: ApiResponseBodyType,
-    { message, signal, processInTransaction }: OutboxHandlerContext,
+    context: OutboxHandlerContext,
   ) {
     // Check pending session before mail
     const sessionExist = await this?.db?.query?.sessionsTable?.findFirst({
@@ -52,36 +52,22 @@ export class EmailRegistrationHandler {
     });
     if (!sessionExist) {
       throw new NonRetryableMessageError(
-        `Sesson-${payload?.session?.id} scope-${payload?.session?.scope} already sent.`,
+        `Sesson-${payload?.session?.id} scope-${payload?.session?.scope} email-${payload?.session?.email} already sent.`,
       );
     }
 
-    try {
-      const mail = await this?.mailer?.send(EmailRegistrationRequestOtpMail, {
-        to: {
-          name: 'New User',
-          // name: payload?.user?.name ?? 'New User',
-          address: payload?.session?.email ?? 'NO_EMAIL',
-        },
-        data: payload,
-        // Over SMTP, a redelivery of this message keeps its Message-ID; Resend gets the
-        // key as its Idempotency-Key and refuses the duplicate
-        idempotencyKey: message?.id,
-        signal,
-        // The outbox retries with its own backoff, and dead-letters what never succeeds
-        retry: false,
-      });
-    } catch (error) {
-      if (error instanceof MailError && error.permanent) {
-        throw new NonRetryableMessageError(error.message, { cause: error });
-      }
-      throw error;
-    }
+    const mail = await this?.mailerCustomService?.outboxSend({
+      mailable: EmailRegistrationRequestOtpMail,
+      toAddress: payload?.session?.email,
+      context,
+      payload,
+    });
 
     await this?.db
       ?.update(sessionsTable)
       ?.set({
         sentAt: new Date(),
+        mailId: mail?.providerMessageId,
       })
       ?.where(eq(sessionsTable?.id, payload?.session?.id ?? 0));
   }

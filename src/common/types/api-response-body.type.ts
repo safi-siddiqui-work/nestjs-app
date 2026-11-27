@@ -4,6 +4,7 @@ export type ApiResponseBodyType = {
   user?: Partial<UserType>;
   session?: SessionExtendedType;
   jwtPayload?: JwtPayloadType;
+  outbox?: OutboxType;
 };
 
 type JwtPayloadType = {
@@ -22,4 +23,11 @@ export type SessionScopeType =
 
 type SessionExtendedType = Partial<SessionType> & {
   scope?: SessionScopeType;
+  extraExpiryMinutes?: number;
+  extraCode?: string;
+  extraAccessToken?: string;
+};
+
+type OutboxType = {
+  topic?: string;
 };

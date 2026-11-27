@@ -27,17 +27,11 @@
   pnpm add -D prettier-plugin-organize-imports
   pnpm add zod
   pnpm add @nestjs/config
-  pnpm add @nestjs/drizzle drizzle-orm@rc @neondatabase/serverless
-  pnpm add -D drizzle-kit@rc
+  pnpm add @nestjs/drizzle drizzle-orm@rc pg
+  pnpm add -D drizzle-kit@rc @types/pg
   pnpm add @nestjs/authentication
   pnpm add @nestjs/mail
   pnpm add @nestjs/outbox
-  pnpm add @nestjs/passport passport passport-local
-  pnpm add -D @types/passport-local
-  pnpm add @nestjs/jwt passport-jwt
+  pnpm add @nestjs/passport passport @nestjs/jwt passport-jwt
   pnpm add -D @types/passport-jwt
   pnpm add @nestjs/throttler
-  pnpm add @nestjs/drizzle drizzle-orm@rc pg
-  pnpm add -D drizzle-kit@rc @types/pg
-
- 

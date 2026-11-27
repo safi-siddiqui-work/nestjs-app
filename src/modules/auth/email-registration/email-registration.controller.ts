@@ -44,7 +44,7 @@ export class EmailRegistrationController {
     return this?.emailRegistrationService?.verifyOtp({
       jwtPayload,
       session: {
-        token: body?.code,
+        extraCode: body?.code,
       },
     });
   }

@@ -8,6 +8,7 @@ import { OutboxModule, OutboxStorage } from '@nestjs/outbox';
 import { fromDrizzle, PostgresOutboxStore } from '@nestjs/outbox/postgres';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 // import { drizzle } from 'drizzle-orm/neon-serverless';
+import { PassportModule } from '@nestjs/passport';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { join } from 'node:path';
 import { AppController } from './app.controller.js';
@@ -109,6 +110,11 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
     //     },
     //   }),
     // }),
+
+    // Use for all strategies
+    PassportModule,
+
+    //
     AuthModule,
   ],
   controllers: [AppController],
@@ -135,7 +141,7 @@ export const { ObserveModule, ObserveInstrument } = createObserveModule();
         ),
     },
 
-    // Strategy
+    // Passport Strategy
     JwtStrategy,
   ],
 })
