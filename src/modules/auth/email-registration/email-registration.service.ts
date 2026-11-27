@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { ZodError } from 'zod';
 import { OutboxConstants } from '../../../common/constants/outbox.constants.js';
 import { ApiResponseBodyType } from '../../../common/types/api-response-body.type.js';
 import { SessionsService } from '../../sessions/sessions.service.js';
@@ -48,7 +47,7 @@ export class EmailRegistrationService {
     const sessionResA = await this?.sessionsService?.verifyOtp({
       jwtPayload: body?.jwtPayload,
       session: {
-        ...body?.session,
+        extraCode: body?.session?.extraCode,
         scope: 'EMAIL_REGISTRATION_VERIFY',
       },
     });
@@ -69,113 +68,43 @@ export class EmailRegistrationService {
     };
   }
 
-  async createUser(body: ApiResponseBodyType) {
-    const { email, sessionId, token } = body?.jwtPayload ?? {};
+  async createUser(body: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+    const { email, sessionId } = body?.jwtPayload ?? {};
     const { name, username, password } = body?.user ?? {};
-    if (!email) {
-      throw new ZodError([
-        {
-          code: 'custom',
-          path: ['email'],
-          message: 'Email is required.',
-        },
-      ]);
-    }
-    if (!username) {
-      throw new ZodError([
-        {
-          code: 'custom',
-          path: ['username'],
-          message: 'Username is required.',
-        },
-      ]);
-    }
 
-    // // user unique
-    // await this?.usersService?.emailMustBeUnique({ email });
+    // user unique
+    await this?.usersService?.emailMustBeUnique({ email });
 
-    // // session valid
-    // const scopeA: SessionScopeType = 'EMAIL_REGISTRATION_CREATE';
-    // const sessionA = await this?.db?.query?.sessionsTable?.findFirst({
-    //   where: {
-    //     id: sessionId,
-    //     email,
-    //     scope: scopeA,
-    //     expiresAt: {
-    //       gt: new Date(),
-    //     },
-    //     usedAt: {
-    //       isNull: true,
-    //     },
-    //   },
-    //   columns: {
-    //     token: true,
-    //   },
-    // });
-    // if (!sessionA) {
-    //   throw new ZodError([
-    //     {
-    //       code: 'custom',
-    //       path: ['name'],
-    //       message: 'Session is invalid',
-    //     },
-    //   ]);
-    // }
+    const sessionResA = await this?.sessionsService?.verifySession({
+      jwtPayload: body?.jwtPayload,
+      session: {
+        scope: 'EMAIL_REGISTRATION_CREATE',
+      },
+    });
+    console.log(sessionResA);
 
-    // // token valid
-    // const compare = await this?.passwordHasher?.verify(
-    //   token ?? '',
-    //   sessionA?.token,
-    // );
-    // if (!compare) {
-    //   throw new ZodError([
-    //     {
-    //       code: 'custom',
-    //       path: ['name'],
-    //       message: 'Session is invalid',
-    //     },
-    //   ]);
-    // }
+    // unique username
+    await this?.usersService?.usernameMustBeUnique({ username });
 
-    // // consume session
-    // await this?.db
-    //   ?.update(sessionsTable)
-    //   ?.set({
-    //     usedAt: new Date(),
-    //   })
-    //   ?.where(eq(sessionsTable?.id, sessionId ?? 0));
+    const userRes = await this?.usersService?.createUserV1({
+      user: {
+        email,
+        name,
+        username,
+        password,
+      },
+    });
+    console.log(userRes);
 
-    // // unique username
-    // const userB = await this?.db?.query?.usersTable?.findFirst({
-    //   where: {
-    //     username,
-    //   },
-    // });
-    // if (userB) {
-    //   throw new ZodError([
-    //     {
-    //       code: 'custom',
-    //       path: ['username'],
-    //       message: 'Username is already taken',
-    //     },
-    //   ]);
-    // }
+    // consume session
+    await this?.sessionsService?.consumeSession({
+      session: {
+        id: sessionId,
+      },
+    });
 
-    // // create user
-    // const hashed = await this?.passwordHasher?.hash(password ?? '');
-    // const userC = await this?.db
-    //   ?.insert(usersTable)
-    //   ?.values({
-    //     email,
-    //     name,
-    //     username,
-    //     password: hashed,
-    //   })
-    //   .returning();
-
-    // if (this?.passwordHasher?.needsRehash(hashed)) {
-    //   // upgrade old hashed passwords
-    // }
-    return {};
+    return {
+      user: userRes?.user,
+    };
   }
 }

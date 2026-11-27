@@ -186,20 +186,12 @@ export class SessionsService {
     }
 
     // consume session
-    const sessionB = await this?.db
-      ?.update(sessionsTable)
-      ?.set({
-        usedAt: new Date(),
-      })
-      ?.where(eq(sessionsTable?.id, sessionId ?? 0))
-      ?.returning({
-        usedAt: sessionsTable?.usedAt,
-      });
+    const sessionB = await this?.consumeSession({ session: { id: sessionId } });
 
     return {
       session: {
         ...sessionA,
-        ...sessionB?.at(0),
+        ...sessionB,
       },
     };
   }
@@ -223,7 +215,7 @@ export class SessionsService {
       ?.values({
         email,
         scope: scope as string,
-        expiresAt: expiresAt,
+        expiresAt,
         token: hashed,
       })
       .returning({ id: sessionsTable?.id });
@@ -232,7 +224,7 @@ export class SessionsService {
     const extraAccessToken = this?.jwtCustomService?.signin({
       jwtPayload: {
         email,
-        expiresAt: expiresAt,
+        expiresAt,
         scope,
         sessionId: session?.at(0)?.id,
         token,
@@ -244,6 +236,91 @@ export class SessionsService {
         ...session?.at(0),
         extraAccessToken,
       },
+    };
+  }
+
+  async verifySession(
+    body?: ApiResponseBodyType,
+  ): Promise<ApiResponseBodyType> {
+    const { scope } = body?.session ?? {};
+    const { sessionId, scope: scopeA, email, token } = body?.jwtPayload ?? {};
+
+    if (!scope || !sessionId || !email || !scopeA || !token) {
+      throw new BadRequestException(
+        'scope, sessionId, email, scopeA, token is required.',
+      );
+    }
+
+    if (scope !== scopeA) {
+      throw new BadRequestException('scope is invlaid.');
+    }
+
+    // session valid
+    const sessionA = await this?.db?.query?.sessionsTable?.findFirst({
+      where: {
+        id: sessionId,
+        email,
+        scope: scope as string,
+        expiresAt: {
+          gt: new Date(),
+        },
+        usedAt: {
+          isNull: true,
+        },
+      },
+      columns: {
+        token: true,
+      },
+    });
+    if (!sessionA) {
+      throw new ZodError([
+        {
+          code: 'custom',
+          path: ['name'],
+          message: 'Session is invalid',
+        },
+      ]);
+    }
+
+    // Otp valid
+    const compare = await this?.passwordHasher?.verify(token, sessionA?.token);
+    if (!compare) {
+      throw new ZodError([
+        {
+          code: 'custom',
+          path: ['code'],
+          message: 'Code is invalid',
+        },
+      ]);
+    }
+
+    return {
+      session: sessionA,
+    };
+  }
+
+  async consumeSession(
+    body?: ApiResponseBodyType,
+  ): Promise<ApiResponseBodyType> {
+    const { id } = body?.session ?? {};
+
+    if (!id) {
+      throw new BadRequestException('id is required.');
+    }
+
+    // consume session
+    const session = await this?.db
+      ?.update(sessionsTable)
+      ?.set({
+        usedAt: new Date(),
+      })
+      ?.where(eq(sessionsTable?.id, id))
+      ?.returning({
+        usedAt: sessionsTable?.usedAt,
+      });
+
+    return {
+      session: session?.at(0),
     };
   }
 }
