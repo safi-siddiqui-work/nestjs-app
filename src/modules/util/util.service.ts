@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
+  addDays,
   addMinutes,
   differenceInDays,
   differenceInHours,
@@ -22,6 +23,10 @@ export class UtilService {
 
   addMinutes(minutes: number = 0, date: Date = new Date()): Date {
     return addMinutes(date, minutes);
+  }
+
+  addDays(days: number = 0, date: Date = new Date()): Date {
+    return addDays(date, days);
   }
 
   differenceVerbose(

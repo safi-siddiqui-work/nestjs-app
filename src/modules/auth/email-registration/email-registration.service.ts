@@ -17,8 +17,13 @@ export class EmailRegistrationService {
     const { email } = body?.session ?? {};
 
     // unique user
-    await this?.usersService?.emailMustBeUnique({ email });
+    await this?.usersService?.emailMustBeUnique({
+      user: {
+        email,
+      },
+    });
 
+    // send otp
     const sessionRes = await this?.sessionsService?.createOtpV1({
       session: {
         email,
@@ -29,42 +34,41 @@ export class EmailRegistrationService {
       },
     });
 
-    console.log(sessionRes);
-
     return {
-      session: {
-        extraAccessToken: sessionRes?.session?.extraAccessToken,
-      },
+      session: this?.sessionsService?.sessionDto(sessionRes?.session),
     };
   }
 
   async verifyOtp(body: ApiResponseBodyType): Promise<ApiResponseBodyType> {
     const { email } = body?.jwtPayload ?? {};
+    const { extraCode } = body?.session ?? {};
 
     // user unique
-    await this?.usersService?.emailMustBeUnique({ email });
+    await this?.usersService?.emailMustBeUnique({
+      user: {
+        email,
+      },
+    });
 
+    // verify otp
     const sessionResA = await this?.sessionsService?.verifyOtp({
       jwtPayload: body?.jwtPayload,
       session: {
-        extraCode: body?.session?.extraCode,
+        extraCode,
         scope: 'EMAIL_REGISTRATION_VERIFY',
       },
     });
-    console.log(sessionResA);
 
+    // create session
     const sessionResB = await this?.sessionsService?.createSession({
       session: {
         email,
         scope: 'EMAIL_REGISTRATION_CREATE',
       },
     });
-    console.log(sessionResB);
 
     return {
-      session: {
-        extraAccessToken: sessionResB?.session?.extraAccessToken,
-      },
+      session: this?.sessionsService?.sessionDto(sessionResB?.session),
     };
   }
 
@@ -73,19 +77,20 @@ export class EmailRegistrationService {
     const { name, username, password } = body?.user ?? {};
 
     // user unique
-    await this?.usersService?.emailMustBeUnique({ email });
+    await this?.usersService?.emailMustBeUnique({ user: { email } });
 
+    // unique username
+    await this?.usersService?.usernameMustBeUnique({ user: { username } });
+
+    // verify session
     const sessionResA = await this?.sessionsService?.verifySession({
       jwtPayload: body?.jwtPayload,
       session: {
         scope: 'EMAIL_REGISTRATION_CREATE',
       },
     });
-    console.log(sessionResA);
 
-    // unique username
-    await this?.usersService?.usernameMustBeUnique({ username });
-
+    // create user
     const userRes = await this?.usersService?.createUserV1({
       user: {
         email,
@@ -93,8 +98,10 @@ export class EmailRegistrationService {
         username,
         password,
       },
+      outbox: {
+        topic: OutboxConstants?.emailRegistrationCreate,
+      },
     });
-    console.log(userRes);
 
     // consume session
     await this?.sessionsService?.consumeSession({
@@ -103,8 +110,19 @@ export class EmailRegistrationService {
       },
     });
 
+    // create session
+    const sessionResB = await this?.sessionsService?.createSession({
+      session: {
+        userId: userRes?.user?.id,
+        email,
+        scope: 'USER_LOGIN',
+        extraExpiryDays: 7,
+      },
+    });
+
     return {
-      user: userRes?.user,
+      user: this?.usersService?.userDto(userRes?.user),
+      session: this?.sessionsService?.sessionDto(sessionResB?.session),
     };
   }
 }

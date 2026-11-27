@@ -1,4 +1,5 @@
 import { SessionType, UserType } from '../databases/drizzle.database.js';
+import { Nullable } from './api-response.type.js';
 
 export type ApiResponseBodyType = {
   user?: Partial<UserType>;
@@ -10,7 +11,7 @@ export type ApiResponseBodyType = {
 type JwtPayloadType = {
   // sub?: string;
   sessionId?: number;
-  userId?: number;
+  userId?: Nullable<number>;
   email?: string;
   // scope?: string;
   scope?: SessionScopeType;
@@ -19,11 +20,12 @@ type JwtPayloadType = {
 };
 
 export type SessionScopeType =
-  'EMAIL_REGISTRATION_VERIFY' | 'EMAIL_REGISTRATION_CREATE';
+  'USER_LOGIN' | 'EMAIL_REGISTRATION_VERIFY' | 'EMAIL_REGISTRATION_CREATE';
 
 type SessionExtendedType = Partial<SessionType> & {
   scope?: SessionScopeType;
   extraExpiryMinutes?: number;
+  extraExpiryDays?: number;
   extraCode?: string;
   extraAccessToken?: string;
 };

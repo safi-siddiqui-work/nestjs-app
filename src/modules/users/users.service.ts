@@ -1,6 +1,7 @@
 import { PasswordHasher } from '@nestjs/authentication';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
+import { Outbox } from '@nestjs/outbox';
 import { ZodError } from 'zod';
 import {
   usersTable,
@@ -14,10 +15,20 @@ export class UsersService {
     @InjectDrizzle()
     private readonly db: DatabaseType,
     private readonly passwordHasher: PasswordHasher,
+    private readonly outbox: Outbox,
   ) {}
 
-  async emailMustBeUnique(user: ApiResponseBodyType['user']) {
-    const { email } = user ?? {};
+  userDto(user: ApiResponseBodyType['user']): ApiResponseBodyType['user'] {
+    const { email, name, username } = user ?? {};
+    return {
+      email,
+      name,
+      username,
+    };
+  }
+
+  async emailMustBeUnique(body?: ApiResponseBodyType) {
+    const { email } = body?.user ?? {};
     const userExist = await this?.db?.query?.usersTable?.findFirst({
       where: {
         email,
@@ -37,8 +48,8 @@ export class UsersService {
     }
   }
 
-  async usernameMustBeUnique(user: ApiResponseBodyType['user']) {
-    const { username } = user ?? {};
+  async usernameMustBeUnique(body?: ApiResponseBodyType) {
+    const { username } = body?.user ?? {};
     const userExist = await this?.db?.query?.usersTable?.findFirst({
       where: {
         username,
@@ -59,29 +70,51 @@ export class UsersService {
   }
 
   async createUserV1(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+    const { topic } = body?.outbox ?? {};
     const { name, username, password, email } = body?.user ?? {};
 
-    if (!name || !username || !password || !email) {
+    if (!name || !username || !password || !email || !topic) {
       throw new BadRequestException(
-        'name, username, password, email is required.',
+        'name, username, password, email, topic is required.',
       );
     }
 
     // create user
     const hashed = await this?.passwordHasher?.hash(password);
-    const user = await this?.db
-      ?.insert(usersTable)
-      ?.values({
-        email,
-        name,
-        username,
-        password: hashed,
-      })
-      .returning({
-        email: usersTable?.email,
-        username: usersTable?.username,
-        name: usersTable?.name,
-      });
+    let user: ApiResponseBodyType['user'][] = [];
+
+    // outbox mail
+    await this?.db?.transaction(async (tx) => {
+      user = await tx
+        ?.insert(usersTable)
+        ?.values({
+          email,
+          name,
+          username,
+          password: hashed,
+        })
+        .returning({
+          id: usersTable?.id,
+          email: usersTable?.email,
+          username: usersTable?.username,
+          name: usersTable?.name,
+        });
+
+      await this?.outbox?.add(tx, [
+        {
+          topic,
+          payload: {
+            user: {
+              email,
+              name,
+              username,
+            },
+          } satisfies ApiResponseBodyType,
+        },
+      ]);
+    });
+
+    this?.outbox?.notify();
 
     // if (this?.passwordHasher?.needsRehash(hashed)) {
     //   // upgrade old hashed passwords
@@ -90,5 +123,28 @@ export class UsersService {
     return {
       user: user?.at(0),
     };
+  }
+
+  async deleteUserByEmail(body?: ApiResponseBodyType): Promise<void> {
+    const { email } = body?.user ?? {};
+
+    if (!email) {
+      throw new BadRequestException('email is required.');
+    }
+
+    return;
+    // const user = await this?.db?.query?.usersTable?.findFirst({
+    //   where: {
+    //     email,
+    //   },
+    //   columns: {
+    //     id: true,
+    //   },
+    // });
+
+    // await this?.db
+    //   ?.delete(sessionsTable)
+    //   ?.where(eq(sessionsTable?.userId, user?.id ?? 0));
+    // await this?.db?.delete(usersTable)?.where(eq(usersTable?.email, email));
   }
 }

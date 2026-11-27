@@ -1,7 +1,7 @@
 import { PasswordHasher } from '@nestjs/authentication';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectDrizzle } from '@nestjs/drizzle';
-import { Outbox } from '@nestjs/outbox';
+import { NonRetryableMessageError, Outbox } from '@nestjs/outbox';
 import { eq } from 'drizzle-orm';
 import { ZodError } from 'zod';
 import {
@@ -22,6 +22,15 @@ export class SessionsService {
     private readonly passwordHasher: PasswordHasher,
     private readonly jwtCustomService: JwtCustomService,
   ) {}
+
+  sessionDto(
+    session: ApiResponseBodyType['session'],
+  ): ApiResponseBodyType['session'] {
+    const { extraAccessToken } = session ?? {};
+    return {
+      extraAccessToken,
+    };
+  }
 
   async createOtpV1(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
     const { topic } = body?.outbox ?? {};
@@ -115,6 +124,55 @@ export class SessionsService {
     };
   }
 
+  async checkOtpBeforeOutboxMail(body?: ApiResponseBodyType): Promise<void> {
+    const { id, email, scope } = body?.session ?? {};
+
+    if (!id || !email || !scope) {
+      throw new BadRequestException('id, email, scope is required.');
+    }
+
+    const sessionA = await this?.db?.query?.sessionsTable?.findFirst({
+      where: {
+        id,
+        email,
+        scope,
+        expiresAt: {
+          gt: new Date(),
+        },
+        usedAt: {
+          isNull: true,
+        },
+        sentAt: {
+          isNull: true,
+        },
+      },
+      columns: {
+        id: true,
+      },
+    });
+    if (!sessionA) {
+      throw new NonRetryableMessageError(
+        `Sesson-${id} scope-${scope} email-${email} already sent.`,
+      );
+    }
+  }
+
+  async updateOtpAfterOutboxMail(body?: ApiResponseBodyType): Promise<void> {
+    const { id, mailId } = body?.session ?? {};
+
+    if (!id) {
+      throw new BadRequestException('id, is required.');
+    }
+
+    await this?.db
+      ?.update(sessionsTable)
+      ?.set({
+        sentAt: new Date(),
+        mailId,
+      })
+      ?.where(eq(sessionsTable?.id, id));
+  }
+
   async verifyOtp(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
     const { extraCode, scope } = body?.session ?? {};
     const { sessionId, scope: scopeA, email } = body?.jwtPayload ?? {};
@@ -199,7 +257,8 @@ export class SessionsService {
   async createSession(
     body?: ApiResponseBodyType,
   ): Promise<ApiResponseBodyType> {
-    const { email, scope, extraExpiryMinutes } = body?.session ?? {};
+    const { email, scope, userId, extraExpiryMinutes, extraExpiryDays } =
+      body?.session ?? {};
 
     if (!email || !scope) {
       throw new BadRequestException('email, scope is required.');
@@ -208,11 +267,14 @@ export class SessionsService {
     // create session
     const token = this.utilService?.generateUuid();
     const hashed = await this.passwordHasher?.hash(token);
-    const expiresAt = this.utilService?.addMinutes(extraExpiryMinutes ?? 5);
+    const expiresAt = extraExpiryDays
+      ? this?.utilService?.addDays(extraExpiryDays)
+      : this.utilService?.addMinutes(extraExpiryMinutes ?? 5);
 
     const session = await this?.db
       ?.insert(sessionsTable)
       ?.values({
+        userId,
         email,
         scope: scope as string,
         expiresAt,
@@ -223,6 +285,7 @@ export class SessionsService {
     // token
     const extraAccessToken = this?.jwtCustomService?.signin({
       jwtPayload: {
+        userId,
         email,
         expiresAt,
         scope,

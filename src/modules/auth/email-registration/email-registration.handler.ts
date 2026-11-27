@@ -1,26 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { InjectDrizzle } from '@nestjs/drizzle';
-import {
-  NonRetryableMessageError,
-  OnOutboxMessage,
-  type OutboxHandlerContext,
-} from '@nestjs/outbox';
-import { eq } from 'drizzle-orm';
+import { OnOutboxMessage, type OutboxHandlerContext } from '@nestjs/outbox';
 import { OutboxConstants } from '../../../common/constants/outbox.constants.js';
-import {
-  sessionsTable,
-  type DatabaseType,
-} from '../../../common/databases/drizzle.database.js';
 import { type ApiResponseBodyType } from '../../../common/types/api-response-body.type.js';
 import { MailerCustomService } from '../../mailer-custom/mailer-custom.service.js';
-import { EmailRegistrationRequestOtpMail } from './email-registration.mail.js';
+import { SessionsService } from '../../sessions/sessions.service.js';
+import {
+  EmailRegistrationCreateUserMail,
+  EmailRegistrationRequestOtpMail,
+} from './email-registration.mail.js';
 
 @Injectable()
 export class EmailRegistrationHandler {
   constructor(
-    @InjectDrizzle()
-    private readonly db: DatabaseType,
+    // @InjectDrizzle()
+    // private readonly db: DatabaseType,
     private readonly mailerCustomService: MailerCustomService,
+    private readonly sessionsService: SessionsService,
   ) {}
 
   @OnOutboxMessage(OutboxConstants?.emailRegistrationVerify, {
@@ -31,30 +26,10 @@ export class EmailRegistrationHandler {
     context: OutboxHandlerContext,
   ) {
     // Check pending session before mail
-    const sessionExist = await this?.db?.query?.sessionsTable?.findFirst({
-      where: {
-        id: payload?.session?.id,
-        email: payload?.session?.email,
-        scope: payload?.session?.scope,
-        expiresAt: {
-          gt: new Date(),
-        },
-        usedAt: {
-          isNull: true,
-        },
-        sentAt: {
-          isNull: true,
-        },
-      },
-      columns: {
-        id: true,
-      },
+
+    await this?.sessionsService?.checkOtpBeforeOutboxMail({
+      session: payload?.session,
     });
-    if (!sessionExist) {
-      throw new NonRetryableMessageError(
-        `Sesson-${payload?.session?.id} scope-${payload?.session?.scope} email-${payload?.session?.email} already sent.`,
-      );
-    }
 
     const mail = await this?.mailerCustomService?.outboxSend({
       mailable: EmailRegistrationRequestOtpMail,
@@ -63,13 +38,27 @@ export class EmailRegistrationHandler {
       payload,
     });
 
-    await this?.db
-      ?.update(sessionsTable)
-      ?.set({
-        sentAt: new Date(),
+    await this?.sessionsService?.updateOtpAfterOutboxMail({
+      session: {
+        id: payload?.session?.id,
         mailId: mail?.providerMessageId,
-      })
-      ?.where(eq(sessionsTable?.id, payload?.session?.id ?? 0));
+      },
+    });
+  }
+
+  @OnOutboxMessage(OutboxConstants?.emailRegistrationCreate, {
+    consumer: `${OutboxConstants?.emailRegistrationCreate}-consumer`,
+  })
+  async emailRegistrationCreate(
+    payload: ApiResponseBodyType,
+    context: OutboxHandlerContext,
+  ) {
+    const mail = await this?.mailerCustomService?.outboxSend({
+      mailable: EmailRegistrationCreateUserMail,
+      toAddress: payload?.user?.email,
+      context,
+      payload,
+    });
   }
 }
 
