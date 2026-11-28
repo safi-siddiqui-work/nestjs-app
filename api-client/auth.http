@@ -1,27 +1,33 @@
 @baseUrl={{$dotenv baseUrl}}
 @email={{$dotenv email}}
 @password={{$dotenv password}}
+@username={{$dotenv username}}
 @bearerToken={{$dotenv bearerToken}}
 
-### Signup
-POST {{baseUrl}}/auth/signup
+### email-registration/request-otp
+POST {{baseUrl}}/auth/email-registration/request-otp
 content-type: application/json
 
 {
-    "email": "{{email}}",
-    "password": "{{password}}"
+    "email": "{{email}}"
 }
 
-### Signin
-POST {{baseUrl}}/auth/signin
-content-type: application/json
-
-{
-    "email": "{{email}}",
-    "password": "{{password}}"
-}
-
-### Auth ME
-POST {{baseUrl}}/auth/me
+### email-registration/verify-otp
+POST {{baseUrl}}/auth/email-registration/verify-otp
 content-type: application/json
 Authorization: Bearer {{bearerToken}}
+
+{
+    "code": "35219444"
+}
+
+### email-registration/create-user
+POST {{baseUrl}}/auth/email-registration/create-user
+content-type: application/json
+Authorization: Bearer {{bearerToken}}
+
+{
+    "name": "Safi Siddiqui",
+    "username": "{{username}}",
+    "password": "{{password}}"
+}

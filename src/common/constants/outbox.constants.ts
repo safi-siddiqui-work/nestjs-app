@@ -1,4 +1,6 @@
 export const OutboxConstants = {
-  emailRegistrationVerify: 'emailRegistrationVerify',
-  emailRegistrationCreate: 'emailRegistrationCreate',
+  auth: {
+    emailRegistrationRequest: 'emailRegistrationRequest',
+    emailRegistrationCreate: 'emailRegistrationCreate',
+  },
 };

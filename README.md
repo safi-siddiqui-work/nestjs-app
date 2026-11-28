@@ -27,8 +27,8 @@
   pnpm add -D prettier-plugin-organize-imports
   pnpm add zod
   pnpm add @nestjs/config
-  pnpm add @nestjs/drizzle drizzle-orm@rc pg
-  pnpm add -D drizzle-kit@rc @types/pg
+  pnpm add @nestjs/drizzle drizzle-orm@rc pg dotenv
+  pnpm add -D drizzle-kit@rc @types/pg tsx
   pnpm add @nestjs/authentication
   pnpm add @nestjs/mail
   pnpm add @nestjs/outbox

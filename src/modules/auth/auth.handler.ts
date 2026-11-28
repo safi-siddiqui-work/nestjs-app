@@ -1,32 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { OnOutboxMessage, type OutboxHandlerContext } from '@nestjs/outbox';
-import { OutboxConstants } from '../../../common/constants/outbox.constants.js';
-import { type ApiResponseBodyType } from '../../../common/types/api-response-body.type.js';
-import { MailerCustomService } from '../../mailer-custom/mailer-custom.service.js';
-import { SessionsService } from '../../sessions/sessions.service.js';
+import { OutboxConstants } from '../../common/constants/outbox.constants.js';
+import { type ApiResponseBodyType } from '../../common/types/api-response-body.type.js';
+import { MailerCustomService } from '../mailer-custom/mailer-custom.service.js';
+import { SessionsService } from '../sessions/sessions.service.js';
 import {
   EmailRegistrationCreateUserMail,
   EmailRegistrationRequestOtpMail,
-} from './email-registration.mail.js';
+} from './auth.mail.js';
 
 @Injectable()
-export class EmailRegistrationHandler {
+export class AuthHandler {
   constructor(
-    // @InjectDrizzle()
-    // private readonly db: DatabaseType,
     private readonly mailerCustomService: MailerCustomService,
     private readonly sessionsService: SessionsService,
   ) {}
 
-  @OnOutboxMessage(OutboxConstants?.emailRegistrationVerify, {
-    consumer: `${OutboxConstants?.emailRegistrationVerify}-consumer`,
+  @OnOutboxMessage(OutboxConstants?.auth?.emailRegistrationRequest, {
+    consumer: `${OutboxConstants?.auth?.emailRegistrationRequest}-consumer`,
   })
-  async emailRegistrationVerify(
+  async emailRegistrationRequest(
     payload: ApiResponseBodyType,
     context: OutboxHandlerContext,
   ) {
     // Check pending session before mail
-
     await this?.sessionsService?.checkOtpBeforeOutboxMail({
       session: payload?.session,
     });
@@ -46,8 +43,8 @@ export class EmailRegistrationHandler {
     });
   }
 
-  @OnOutboxMessage(OutboxConstants?.emailRegistrationCreate, {
-    consumer: `${OutboxConstants?.emailRegistrationCreate}-consumer`,
+  @OnOutboxMessage(OutboxConstants?.auth?.emailRegistrationCreate, {
+    consumer: `${OutboxConstants?.auth?.emailRegistrationCreate}-consumer`,
   })
   async emailRegistrationCreate(
     payload: ApiResponseBodyType,
@@ -62,8 +59,8 @@ export class EmailRegistrationHandler {
   }
 }
 
-// @OnOutboxMessage(OutboxConstants?.emailRegistrationVerify, {
-//   consumer: `${OutboxConstants?.emailRegistrationVerify}-consumer`,
+// @OnOutboxMessage(OutboxConstants?.auth?.emailRegistrationVerify, {
+//   consumer: `${OutboxConstants?.auth?.emailRegistrationVerify}-consumer`,
 // })
 // async emailRegistrationVerify(
 //   payload: ApiResponseBodyType,

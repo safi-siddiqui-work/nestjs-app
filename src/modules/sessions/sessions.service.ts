@@ -33,6 +33,8 @@ export class SessionsService {
   }
 
   async createOtpV1(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+    // v1 - creates otp, sends otp, returns access token - for guests
+
     const { topic } = body?.outbox ?? {};
     const { email, scope, extraExpiryMinutes } = body?.session ?? {};
     const scopeA = scope as string;
@@ -152,7 +154,7 @@ export class SessionsService {
     });
     if (!sessionA) {
       throw new NonRetryableMessageError(
-        `Sesson-${id} scope-${scope} email-${email} already sent.`,
+        `Sesson-${id} scope-${scope} email-${email} cannot be retried.`,
       );
     }
   }

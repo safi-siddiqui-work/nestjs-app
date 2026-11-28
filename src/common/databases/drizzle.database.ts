@@ -1,5 +1,6 @@
 import { defineRelations } from 'drizzle-orm';
-import { NeonDatabase } from 'drizzle-orm/neon-serverless';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+// import { NeonDatabase } from 'drizzle-orm/neon-serverless';
 import { integer, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 export const todosTable = pgTable('todos', {
@@ -56,7 +57,7 @@ export const relations = defineRelations(
   }),
 );
 
-export type DatabaseType = NeonDatabase<typeof relations>;
+export type DatabaseType = NodePgDatabase<typeof relations>;
 
 export type UserType = typeof usersTable.$inferSelect;
 export type SessionType = typeof sessionsTable.$inferSelect;

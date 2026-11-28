@@ -1,20 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { OutboxConstants } from '../../../common/constants/outbox.constants.js';
-import { ApiResponseBodyType } from '../../../common/types/api-response-body.type.js';
-import { SessionsService } from '../../sessions/sessions.service.js';
-import { UsersService } from '../../users/users.service.js';
+import { OutboxConstants } from '../../common/constants/outbox.constants.js';
+import { ApiResponseBodyType } from '../../common/types/api-response-body.type.js';
+import { SessionsService } from '../sessions/sessions.service.js';
+import { UsersService } from '../users/users.service.js';
 
 @Injectable()
-export class EmailRegistrationService {
+export class AuthService {
   constructor(
-    // @InjectDrizzle()
-    // private readonly db: DatabaseType,
     private readonly sessionsService: SessionsService,
     private readonly usersService: UsersService,
   ) {}
 
-  async requestOtp(body: ApiResponseBodyType): Promise<ApiResponseBodyType> {
-    const { email } = body?.session ?? {};
+  async emailRegistrationRequestOtp(
+    body?: ApiResponseBodyType,
+  ): Promise<ApiResponseBodyType> {
+    const { email } = body?.user ?? {};
 
     // unique user
     await this?.usersService?.emailMustBeUnique({
@@ -30,7 +30,7 @@ export class EmailRegistrationService {
         scope: 'EMAIL_REGISTRATION_VERIFY',
       },
       outbox: {
-        topic: OutboxConstants?.emailRegistrationVerify,
+        topic: OutboxConstants?.auth?.emailRegistrationRequest,
       },
     });
 
@@ -39,7 +39,9 @@ export class EmailRegistrationService {
     };
   }
 
-  async verifyOtp(body: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+  async emailRegistrationVerifyOtp(
+    body?: ApiResponseBodyType,
+  ): Promise<ApiResponseBodyType> {
     const { email } = body?.jwtPayload ?? {};
     const { extraCode } = body?.session ?? {};
 
@@ -72,7 +74,9 @@ export class EmailRegistrationService {
     };
   }
 
-  async createUser(body: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+  async createUserV1(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+    // v1 - unique email and username, verify session and consume, login session
+
     const { email, sessionId } = body?.jwtPayload ?? {};
     const { name, username, password } = body?.user ?? {};
 
@@ -99,7 +103,7 @@ export class EmailRegistrationService {
         password,
       },
       outbox: {
-        topic: OutboxConstants?.emailRegistrationCreate,
+        topic: OutboxConstants?.auth?.emailRegistrationCreate,
       },
     });
 

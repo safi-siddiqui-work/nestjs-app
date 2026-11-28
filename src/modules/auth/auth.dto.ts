@@ -12,10 +12,10 @@ export const verifyOtpSchema = z?.object({
 
 export type VerifyOtpDto = z.infer<typeof verifyOtpSchema>;
 
-export const createUserSchema = z?.object({
+export const createUserV1Schema = z?.object({
   name: z.string().min(3).max(250),
   username: z.string().min(3).max(250),
   password: z.string().min(8).max(250),
 });
 
-export type CreateUserDto = z.infer<typeof createUserSchema>;
+export type CreateUserV1Dto = z.infer<typeof createUserV1Schema>;
