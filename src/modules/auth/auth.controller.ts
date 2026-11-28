@@ -5,6 +5,8 @@ import { ApiResponseBodyType } from '../../common/types/api-response-body.type.j
 import {
   type CreateUserV1Dto,
   createUserV1Schema,
+  type EmailPasswordDto,
+  emailPasswordSchema,
   type RequestOtpDto,
   requestOtpSchema,
   type VerifyOtpDto,
@@ -17,7 +19,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('email-registration/request-otp')
-  requestOtp(
+  emailRegistrationRequestOtp(
     @Body({
       schema: requestOtpSchema,
     })
@@ -32,7 +34,7 @@ export class AuthController {
 
   @Auth('EMAIL_REGISTRATION_VERIFY')
   @Post('email-registration/verify-otp')
-  verifyOtp(
+  emailRegistrationVerifyOtp(
     @Body({
       schema: verifyOtpSchema,
     })
@@ -49,16 +51,36 @@ export class AuthController {
 
   @Auth('EMAIL_REGISTRATION_CREATE')
   @Post('email-registration/create-user')
-  createUser(
+  emailRegistrationCreateUser(
     @Body({
       schema: createUserV1Schema,
     })
     body: CreateUserV1Dto,
     @JwtUser() jwtPayload: ApiResponseBodyType['jwtPayload'],
   ) {
-    return this?.authService?.createUserV1({
+    return this?.authService?.emailRegistrationCreateUser({
       user: body,
       jwtPayload,
+    });
+  }
+
+  @Auth('USER_LOGIN')
+  @Post('current-user/me')
+  currentUser(@JwtUser() jwtPayload: ApiResponseBodyType['jwtPayload']) {
+    return this?.authService?.currentUser({
+      jwtPayload,
+    });
+  }
+
+  @Post('email-password-login')
+  emailPasswordLogin(
+    @Body({
+      schema: emailPasswordSchema,
+    })
+    body: EmailPasswordDto,
+  ) {
+    return this?.authService?.emailPasswordLogin({
+      user: body,
     });
   }
 }

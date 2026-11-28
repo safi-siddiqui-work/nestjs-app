@@ -2,7 +2,7 @@ import { SessionType, UserType } from '../databases/drizzle.database.js';
 import { Nullable } from './api-response.type.js';
 
 export type ApiResponseBodyType = {
-  user?: Partial<UserType>;
+  user?: UserExtendedType;
   session?: SessionExtendedType;
   jwtPayload?: JwtPayloadType;
   outbox?: OutboxType;
@@ -32,4 +32,21 @@ type SessionExtendedType = Partial<SessionType> & {
 
 type OutboxType = {
   topic?: string;
+};
+
+type UserExtendedType = Partial<UserType> & {
+  findFirst?: {
+    where?: {
+      email?: string;
+    };
+    columns?: {
+      email?: boolean;
+      password?: boolean;
+      username?: boolean;
+      name?: boolean;
+    };
+  };
+  // extraSelect?: {
+  //   id?: boolean;
+  // };
 };

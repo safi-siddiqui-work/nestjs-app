@@ -31,3 +31,17 @@ Authorization: Bearer {{bearerToken}}
     "username": "{{username}}",
     "password": "{{password}}"
 }
+
+### current-user/me
+POST {{baseUrl}}/auth/current-user/me
+content-type: application/json
+Authorization: Bearer {{bearerToken}}
+
+### email-password-login
+POST {{baseUrl}}/auth/email-password-login
+content-type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}

@@ -19,3 +19,10 @@ export const createUserV1Schema = z?.object({
 });
 
 export type CreateUserV1Dto = z.infer<typeof createUserV1Schema>;
+
+export const emailPasswordSchema = z?.object({
+  email: z.email(),
+  password: z.string().min(8).max(250),
+});
+
+export type EmailPasswordDto = z.infer<typeof emailPasswordSchema>;

@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ZodError } from 'zod';
 import { OutboxConstants } from '../../common/constants/outbox.constants.js';
 import { ApiResponseBodyType } from '../../common/types/api-response-body.type.js';
 import { SessionsService } from '../sessions/sessions.service.js';
@@ -74,9 +75,9 @@ export class AuthService {
     };
   }
 
-  async createUserV1(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
-    // v1 - unique email and username, verify session and consume, login session
-
+  async emailRegistrationCreateUser(
+    body?: ApiResponseBodyType,
+  ): Promise<ApiResponseBodyType> {
     const { email, sessionId } = body?.jwtPayload ?? {};
     const { name, username, password } = body?.user ?? {};
 
@@ -113,6 +114,79 @@ export class AuthService {
         id: sessionId,
       },
     });
+
+    // create session
+    const sessionResB = await this?.sessionsService?.createSession({
+      session: {
+        userId: userRes?.user?.id,
+        email,
+        scope: 'USER_LOGIN',
+        extraExpiryDays: 7,
+      },
+    });
+
+    return {
+      user: this?.usersService?.userDto(userRes?.user),
+      session: this?.sessionsService?.sessionDto(sessionResB?.session),
+    };
+  }
+
+  async currentUser(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+    const { email, expiresAt } = body?.jwtPayload ?? {};
+
+    return {
+      user: this?.usersService?.userDto({
+        email,
+      }),
+      session: this?.sessionsService?.sessionDto({
+        expiresAt,
+      }),
+    };
+  }
+
+  async emailPasswordLogin(
+    body?: ApiResponseBodyType,
+  ): Promise<ApiResponseBodyType> {
+    const { email, password } = body?.user ?? {};
+
+    const userRes = await this?.usersService?.findUser({
+      user: {
+        findFirst: {
+          where: {
+            email,
+          },
+          columns: {
+            email: true,
+            password: true,
+            name: true,
+            username: true,
+          },
+        },
+      },
+    });
+    if (!userRes?.user) {
+      throw new ZodError([
+        {
+          code: 'custom',
+          path: ['email'],
+          message: 'Email needs to be registered.',
+        },
+      ]);
+    }
+
+    const compare = await this?.usersService?.comparePasswords(
+      password,
+      userRes?.user?.password,
+    );
+    if (!compare) {
+      throw new ZodError([
+        {
+          code: 'custom',
+          path: ['email'],
+          message: 'Credentials are incorrect.',
+        },
+      ]);
+    }
 
     // create session
     const sessionResB = await this?.sessionsService?.createSession({

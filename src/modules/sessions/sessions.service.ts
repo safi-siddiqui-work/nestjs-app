@@ -26,9 +26,10 @@ export class SessionsService {
   sessionDto(
     session: ApiResponseBodyType['session'],
   ): ApiResponseBodyType['session'] {
-    const { extraAccessToken } = session ?? {};
+    const { extraAccessToken, expiresAt } = session ?? {};
     return {
       extraAccessToken,
+      expiresAt,
     };
   }
 
@@ -120,6 +121,7 @@ export class SessionsService {
     return {
       session: {
         ...sessionB?.at(0),
+        expiresAt,
         extraCode,
         extraAccessToken,
       },
@@ -299,6 +301,7 @@ export class SessionsService {
     return {
       session: {
         ...session?.at(0),
+        expiresAt,
         extraAccessToken,
       },
     };

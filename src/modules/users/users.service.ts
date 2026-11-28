@@ -8,6 +8,7 @@ import {
   type DatabaseType,
 } from '../../common/databases/drizzle.database.js';
 import { ApiResponseBodyType } from '../../common/types/api-response-body.type.js';
+import { Nullable } from '../../common/types/api-response.type.js';
 
 @Injectable()
 export class UsersService {
@@ -125,26 +126,46 @@ export class UsersService {
     };
   }
 
-  async deleteUserByEmail(body?: ApiResponseBodyType): Promise<void> {
-    const { email } = body?.user ?? {};
+  async findUser(body?: ApiResponseBodyType): Promise<ApiResponseBodyType> {
+    const { findFirst } = body?.user ?? {};
+    // const {where} = body?.user?.findFirst ?? {}
 
-    if (!email) {
-      throw new BadRequestException('email is required.');
-    }
+    const user = await this?.db?.query?.usersTable?.findFirst({
+      where: findFirst?.where
+        ? {
+            // email,
+            ...(findFirst?.where?.email && { email: findFirst?.where?.email }),
+          }
+        : undefined,
 
-    return;
-    // const user = await this?.db?.query?.usersTable?.findFirst({
-    //   where: {
-    //     email,
-    //   },
-    //   columns: {
-    //     id: true,
-    //   },
-    // });
+      columns: findFirst?.columns
+        ? {
+            // id: true,
+            ...(findFirst?.columns?.email && {
+              email: findFirst?.columns?.email,
+            }),
+            ...(findFirst?.columns?.password && {
+              password: findFirst?.columns?.password,
+            }),
+            ...(findFirst?.columns?.name && {
+              name: findFirst?.columns?.name,
+            }),
+            ...(findFirst?.columns?.username && {
+              username: findFirst?.columns?.username,
+            }),
+          }
+        : undefined,
+    });
 
-    // await this?.db
-    //   ?.delete(sessionsTable)
-    //   ?.where(eq(sessionsTable?.userId, user?.id ?? 0));
-    // await this?.db?.delete(usersTable)?.where(eq(usersTable?.email, email));
+    return {
+      user,
+    };
+  }
+
+  async comparePasswords(
+    password?: Nullable<string>,
+    hashed?: Nullable<string>,
+  ): Promise<boolean> {
+    return await this?.passwordHasher?.verify(password ?? 'A', hashed ?? 'B');
   }
 }
